@@ -1,0 +1,33 @@
+{
+organisms:[
+        {
+        id:10929,
+        name:"Bovine Rotavirus"
+        },
+        {
+        id:9606,
+        name:"Homo Sapiens"
+        }
+        ],
+proteins:[
+        {
+        label:"NSP3",
+        description:"Rotavirus Non Structural Protein 3",
+        organism-id: 10929,
+        acc: "ACB38353"
+        },
+        {
+        label:"EIF4G",
+        description:"eukaryotic translation initiation factor 4 gamma",
+        organism-id: 9606,
+        acc:"AAI40897"
+        }
+        ],
+interactions:[
+        {
+        label:"NSP3 interacts with EIF4G1",
+        pubmed-id:[77120248,38201627],
+        proteins:["ACB38353","AAI40897"]
+        }
+        ]
+}

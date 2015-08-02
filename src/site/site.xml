@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JSONBeam">
+	<publishDate position="right" />
+	<version position="right" />
+	
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.4</version>
+  </skin>
+	
+<custom>
+    <fluidoSkin>
+    <skipGenerationDate>true</skipGenerationDate>
+      <gitHub>
+        <projectId>SvenEwald/jsonbeam</projectId>
+        <ribbonOrientation>right</ribbonOrientation>
+        <ribbonColor>blue</ribbonColor>
+        
+      </gitHub>
+       <topBarEnabled>true</topBarEnabled>
+      <sideBarEnabled>false</sideBarEnabled>
+    </fluidoSkin>
+  </custom>
+ 
+	<body>
+		<head>
+		    <meta name="description" content="Java JSON library providing JSONPath like projections as alternative to data binding." />
+		    <meta name="keywords" content="json, json path,java,data binding, data projection"/>
+            <meta name="author" content="Sven Ewald"/>
+		</head>
+		<!-- <links> <item name="Apache" href="http://www.apache.org/" /> <item 
+			name="Maven 1.x" href="http://maven.apache.org/maven-1.x/"/> <item name="Maven 
+			2" href="http://maven.apache.org/"/> </links> -->
+		<menu name="JSONBeam">
+			<item name="Welcome" href="index.html" />
+<!-- 
+			<item name="Introduction" href="introduction.html" />
+			<item name="Tutorials" href="tutorials.html" />
+			<item name="API Explained" href="refcards.html"/>
+			<item name="Javadoc" href="apidocs"/>
+			<item name="FAQ" href="faq.html" />
+			<item name="Further Reading" href="links.html" />
+			<item name="Download" href="download.html" />
+			<item name="Release Notes" href="release-notes.html" />
+			<item name="Road Map" href="roadmap.html" />
+			<item name="About / License" href="about.html" />
+-->			
+		</menu>
+       
+		
+		
+<!-- 
+		<menu ref="reports" />
+ -->
+	</body>
+</project>

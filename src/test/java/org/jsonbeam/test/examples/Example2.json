@@ -1,0 +1,70 @@
+{
+"kind": "books#volumes",
+"totalItems": 1,
+"items": [
+{
+"kind": "books#volume",
+"id": "1sCDyGWDgQsC",
+"etag": "ND3n2hIHVlg",
+"selfLink": "https://www.googleapis.com/books/v1/volumes/1sCDyGWDgQsC",
+"volumeInfo": {
+"title": "Excel 2007 Advanced Report Development",
+"authors": [
+	 "Timothy Zapawa"
+],
+"publisher": "Wiley",
+"publishedDate": "2007-03-26",
+"description": "Create powerful, innovative reporting solutions with Excel 2007! With this new book, which is significantly updated from the bestselling Excel 2003 version, author Timothy Zapawa provides you with in-depth coverage of Excel 2007â€™s enhanced reporting capabilities. Discover what you can do with PivotTable and Spreadsheet reports, enhanced conditional formatting and filtering functions, improved data access and management tools, and expanded OLAP features. With notes, tips, warnings, real-world examples, and how-to videos in every chapter, you'll soon be an expert on Excel report development!",
+"industryIdentifiers": [
+	 {
+	 "type": "ISBN_10",
+	 "identifier": "0470046449"
+	 },
+	 {
+	 "type": "ISBN_13",
+	 "identifier": "9780470046449"
+	 }
+],
+"pageCount": 576,
+"printType": "BOOK",
+"categories": [
+	 "Computers"
+],
+"averageRating": 4.0,
+"ratingsCount": 1,
+"contentVersion": "preview-1.0.0",
+"imageLinks": {
+	 "smallThumbnail": "http://bks4.books.google.com/books?id=1sCDyGWDgQsC&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+	 "thumbnail": "http://bks4.books.google.com/books?id=1sCDyGWDgQsC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+},
+"language": "en",
+"previewLink": "http://books.google.com/books?id=1sCDyGWDgQsC&dq=isbn:9780470046449&hl=&cd=1&source=gbs_api",
+"infoLink": "http://books.google.com/books?id=1sCDyGWDgQsC&dq=isbn:9780470046449&hl=&source=gbs_api",
+"canonicalVolumeLink": "http://books.google.com/books/about/Excel_2007_Advanced_Report_Development.html?hl=&id=1sCDyGWDgQsC"
+},
+"saleInfo": {
+"country": "US",
+"saleability": "NOT_FOR_SALE",
+"isEbook": false
+},
+"accessInfo": {
+"country": "US",
+"viewability": "NO_PAGES",
+"embeddable": false,
+"publicDomain": false,
+"textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+"epub": {
+	 "isAvailable": false
+},
+"pdf": {
+	 "isAvailable": false
+},
+"webReaderLink": "http://books.google.com/books/reader?id=1sCDyGWDgQsC&hl=&printsec=frontcover&output=reader&source=gbs_api",
+"accessViewStatus": "NONE"
+},
+"searchInfo": {
+"textSnippet": "In this book, Timothy Zapawa has provided you with in-depth coverage of Excel 2007&#39;s enhanced reporting capabilities."
+}
+}
+]
+}
