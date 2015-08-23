@@ -20,12 +20,14 @@ package org.jsonbeam.jsonprojector.parser;
 
 import java.util.Objects;
 
+import org.jsonbeam.exceptions.ParseErrorException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.index.JBResultCollector;
+import org.jsonbeam.index.keys.ElementKey;
 import org.jsonbeam.index.keys.KeyReference;
 import org.jsonbeam.index.model.Reference;
-import org.jsonbeam.index.model.values.StringCopyReference;
 import org.jsonbeam.index.model.values.StringValueReference;
+import org.jsonbeam.io.CharacterSource;
 
 public abstract class JSONParser {
 
@@ -38,208 +40,223 @@ public abstract class JSONParser {
 		return (c <= ' ') || (c == ',') || (c == ']') || (c == '}');
 	}
 
-	protected final CharSequence json;
-	protected int cursor;
+	protected final CharacterSource json;
 	protected final JBResultCollector resultCollector;
+	protected char currentChar;
+	private final static char[] TRUE = new char[] { 't', 'r', 'u', 'e' };
+	private final static char[] FALS = new char[] { 'f', 'a', 'l', 's' };
+	private final static char[] NULL = new char[] { 'n', 'u', 'l', 'l' };
 
-	protected JSONParser(final CharSequence json, final JBResultCollector resultCollector) {
+	protected JSONParser(final CharacterSource json, final JBResultCollector resultCollector) {
 		Objects.requireNonNull(json);
 		Objects.requireNonNull(resultCollector);
 		this.json = json;
 		this.resultCollector = (resultCollector);
 	}
 
-	protected char consumeWhitespace() {
-		int j = cursor;
-		int e = json.length();
-		char c;
-		while (j <= e) {
-			c = json.charAt(j);
-			if (c > ' ') {
-				cursor = j;
-				return c;
-			}
-
-			++j;
+	protected void expectMoreData() {
+		if (!json.hasNext()) {
+			throw new UnexpectedEOF(json.getPosition());
 		}
-		throw new UnexpectedEOF(cursor, json);
 	}
 
-	protected KeyReference parseJSONKey(final CharSequence array, final int start, final TokenEnder ender) {
+	//	protected char consumeWhitespace() {
+	//		int j = cursor;
+	//		int e = json.length();
+	//		char c;
+	//		while (j <= e) {
+	//			c = json.charAt(j);
+	//			if (c > ' ') {
+	//				cursor = j;
+	//				return c;
+	//			}
+	//
+	//			++j;
+	//		}
+	//		throw new UnexpectedEOF(cursor, json);
+	//	}
+
+	protected KeyReference parseJSONKey(final TokenEnder ender) {
+		int start = json.getPosition();
 		int hash = 0;
-		final int max = array.length();
-		for (int i = start; i < max; ++i) {
-			char c = array.charAt(i);
+		int length = 0;
+		while (json.hasNext()) {
+			char c = json.getNext();
 			//if (c == '"') {
 			if (ender.isTokenEnd(c)) {
-				cursor = i + 1;
-				return new KeyReference(start, i, hash, json);
+				//cursor = i + 1;
+				return new KeyReference(start + 1, length, hash, json);
 			}
-			if (c == '\\') {
-				StringBuilder builder = new StringBuilder();
-				builder.append(array, start, i - start);
-				for (int j = i; j < max; ++j) {
-					c = array.charAt(j);
-					//if (c == '"') {
-					if (ender.isTokenEnd(c)) {
-						cursor = j + 1;
-						return new KeyReference(builder.toString());
-					}
-					if (c == '\\') {
-						switch (c = array.charAt(++j)) {
-						case '"':
-						case '\\':
-						case '/':
-						case 'n':
-						case 'r':
-						case 't':
-						case 'b':
-						case 'f':
-							builder.append(c);
-							continue;
-						case 'u':
-							builder.append(Character.toChars(Integer.valueOf(new StringBuilder(array.subSequence(i, i + 4)).toString(), 16)));
-							j += 4;
-							continue;
-
-						default:
-						}
-
-						continue;
-					}
-					builder.append(c);
-				}
-			}
+			++length;
 			hash = (31 * hash) + c;
 		}
-		throw new UnexpectedEOF(array.length(), json);
+		throw new UnexpectedEOF(json.getPosition());
 	}
 
-	protected Reference parseJSONString(final CharSequence array, final int start, final TokenEnder ender) {
-		final int max = array.length();
-		for (int i = start; i <= max; ++i) {
-			char c = array.charAt(i);
+	protected KeyReference parseUnquotedJSONKey(final char firstChar) {
+		int start = json.getPosition();
+		int hash = firstChar;
+		int length = 1;
+		while (json.hasNext()) {
+			char c = json.getNext();
+			//if (c == '"') {
+			if (':' == c) { //FIXME: handle"\:"
+				//cursor = i + 1;
+				return new KeyReference(start, length, hash, json);
+			}
+			++length;
+			hash = (31 * hash) + c;
+		}
+		throw new UnexpectedEOF(json.getPosition());
+	}
+
+	protected Reference parseJSONString(final TokenEnder ender) {
+		int start = json.getPosition();
+		int length = 0;
+		while (json.hasNext()) {
+			char c = json.getNext();
 			if (ender.isTokenEnd(c)) {
-				cursor = i + 1;
-				return new StringValueReference(start, i);
+				return new StringValueReference(start + 1, length, json);
 			}
-			if (c == '\\') {
-				StringBuilder builder = new StringBuilder();
-				builder.append(array, start, i);
-				for (int j = i; j < max; ++j) {
-					c = array.charAt(j);
-					if (ender.isTokenEnd(c)) {
-						cursor = j + 1;
-						return new StringCopyReference(builder);
-					}
-					if (c == '\\') {
-						switch (c = array.charAt(++j)) {
-						case '"':
-						case '\\':
-						case '/':
-							builder.append(c);
-							continue;
-						case 'n':
-							builder.append('\n');
-							continue;
-						case 'r':
-							builder.append('\r');
-							continue;
-						case 't':
-							builder.append('\t');
-							continue;
-						case 'b':
-							builder.append('\b');
-							continue;
-						case 'f':
-							builder.append('\f');
-							continue;
-						case 'u':
-							builder.append(Character.toChars(Integer.valueOf(new StringBuilder(array.subSequence(i, i + 4)).toString(), 16)));
-							j += 4;
-							continue;
-
-						default:
-						}
-						continue;
-					}
-					builder.append(c);
-				}
-			}
+			++length;
 		}
-		throw new UnexpectedEOF(array.length(), json);
+		throw new UnexpectedEOF(json.getPosition());
 	}
 
-	protected Reference parseUnquotedJSONString(final CharSequence array, final int start) {
-		final int max = array.length();
-		for (int i = start; i <= max; ++i) {
-			char c = array.charAt(i);
-			if (isStringEnd(c)) {
-				cursor = i;
-				int length = i - start;
-				if (length == 4) {
-					if (((array.charAt(start) == 't') && (array.charAt(start + 1) == 'r')) || (array.charAt(start + 2) == 'u') || (array.charAt(start + 3) == 'e')) {
-						return Reference.TRUE;
-					}
-					if (((array.charAt(start) == 'n') && (array.charAt(start + 1) == 'u')) || (array.charAt(start + 2) == 'l') || (array.charAt(start + 3) == 'l')) {
-						return Reference.NULL;
-					}
-				}
-				else if (length == 5) {
-					if (((array.charAt(start) == 'f') && (array.charAt(start + 1) == 'a')) || (array.charAt(start + 2) == 'l') || (array.charAt(start + 3) == 's') || (array.charAt(start + 3) == 'e')) {
-						return Reference.FALSE;
-					}
-				}
-				return new StringValueReference(start, i);
+	protected Reference parseUnquotedJSONString(char c) {
+		int start = json.getPosition();
+		int tc = 4, tf = 4, tn = 4;
+		int length = 0;
+		//		for (int i = 0; (i < 4) && json.hasNext(); ++i) {
+		int i = 0;
+		do {
+			//			char c = json.getNext();
+			//			if (isStringEnd(c)) {
+			//				return new StringValueReference(start, json.getPosition() - start, json);
+			//			}
+			if (TRUE[i] == c) {
+				--tc;
 			}
-			if (c == '\\') {
-				StringBuilder builder = new StringBuilder();
-				builder.append(array, start, i - start);
-				for (int j = i; j < max; ++j) {
-					c = array.charAt(j);
-					if (isStringEnd(c)) {
-						cursor = j + 1;
-						return new StringCopyReference(builder);
-					}
-					if (c == '\\') {
-						switch (c = array.charAt(++j)) {
-						case '"':
-						case '\\':
-						case ',':
-						case ']':
-						case '}':
-						case '/':
-							builder.append(c);
-							continue;
-						case 'n':
-							builder.append('\n');
-							continue;
-						case 'r':
-							builder.append('\r');
-							continue;
-						case 't':
-							builder.append('\t');
-							continue;
-						case 'b':
-							builder.append('\b');
-							continue;
-						case 'f':
-							builder.append('\f');
-							continue;
-						case 'u':
-							builder.append(Character.toChars(Integer.valueOf(new StringBuilder(array.subSequence(i, i + 4)).toString(), 16)));
-							j += 4;
-							continue;
-
-						default:
-						}
-						continue;
-					}
-					builder.append(c);
+			else if (FALS[i] == c) {
+				--tf;
+				if (i == 2) {
+					--tn;
 				}
+			}
+			else if (NULL[i] == c) {
+				--tn;
+			}
+			else {
+				if (isStringEnd(c)) {
+					currentChar = c;
+					return new StringValueReference(start, length, json);
+				}
+				break;
+			}
+			expectMoreData();
+			c = json.getNext();
+			++length;
+			++i;
+		} while (i < 4);
+
+		if ((i == 4)) {
+			if (isStringEnd(c)) {
+				currentChar = c;
+				if (tc == 0) {
+					return Reference.TRUE;
+				}
+				if (tn == 0) {
+					return Reference.NULL;
+				}
+			}
+			if ((tf == 0) && (c == 'e')) {
+				c = json.getNext();
+				if (isStringEnd(c)) {
+					currentChar = c;
+					return Reference.FALSE;
+				}
+				++length;
 			}
 		}
-		throw new UnexpectedEOF(0, json);
+
+		while (json.hasNext()) {
+			c = json.getNext();
+			++length;
+			if (isStringEnd(c)) {
+				currentChar = c;
+				return new StringValueReference(start, length, json);
+			}
+
+			//			if (c == '\\') {
+			//				StringBuilder builder = new StringBuilder();
+			//				builder.append(array, start, i - start);
+			//				for (int j = i; j < max; ++j) {
+			//					c = array.charAt(j);
+			//					if (isStringEnd(c)) {
+			//						//cursor = j + 1;
+			//						return new StringCopyReference(builder);
+			//					}
+			//					if (c == '\\') {
+			//						switch (c = array.charAt(++j)) {
+			//						case '"':
+			//						case '\\':
+			//						case ',':
+			//						case ']':
+			//						case '}':
+			//						case '/':
+			//							builder.append(c);
+			//							continue;
+			//						case 'n':
+			//							builder.append('\n');
+			//							continue;
+			//						case 'r':
+			//							builder.append('\r');
+			//							continue;
+			//						case 't':
+			//							builder.append('\t');
+			//							continue;
+			//						case 'b':
+			//							builder.append('\b');
+			//							continue;
+			//						case 'f':
+			//							builder.append('\f');
+			//							continue;
+			//						case 'u':
+			//							builder.append(Character.toChars(Integer.valueOf(new StringBuilder(array.subSequence(i, i + 4)).toString(), 16)));
+			//							j += 4;
+			//							continue;
+			//
+			//						default:
+			//						}
+			//						continue;
+			//					}
+			//					builder.append(c);
+			//				}
+			//			}
+		}
+		throw new UnexpectedEOF(json.getPosition());
+	}
+
+	protected char consumeAfterValue(final ElementKey currentKey) {
+		expectMoreData();
+		char c = json.nextConsumingWhitespace();
+		if (c == ',') {
+			currentKey.next();
+			c = json.getNext();
+			expectMoreData();
+			if (c <= ' ') {
+				c = json.nextConsumingWhitespace();
+			}
+			return c;
+		}
+		return c;
+
+	}
+
+	protected void expect(final char c, final String expectedChars) {
+		if (-1 == expectedChars.indexOf(c)) {
+			throw new ParseErrorException(json.getPosition(), c, expectedChars);//FIXME
+		}
 	}
 
 }

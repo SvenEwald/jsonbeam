@@ -19,6 +19,7 @@
 package org.jsonbeam.index;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.jsonbeam.index.keys.ElementKey;
 import org.jsonbeam.index.model.ObjectReference;
@@ -39,7 +40,7 @@ public class JBSubQueries extends JBQueries {
 	}
 
 	@Override
-	public Optional<JBSubQueries> foundObjectPath(final ObjectReference item) {
+	public Optional<JBSubQueries> foundObjectPath(final Supplier<ObjectReference> item) {
 		parent.foundObjectPath(item); //Ignoring parent subqueries for now
 		return super.foundObjectPath(item);
 	}

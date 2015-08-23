@@ -42,6 +42,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.net.URL;
 
+import org.jsonbeam.io.CharacterSource;
+import org.jsonbeam.io.StringCharacterSource;
 import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
 import org.jsonbeam.test.utils.JBExpect;
 import org.junit.Assert;
@@ -135,7 +137,6 @@ public class TestProjectionRegression {
 	private final Method method;
 
 	public TestProjectionRegression(final String name, final String methodName, final Class<?> projectionInterface, final Method method) throws Exception {
-
 		this.json = Arrays.stream(projectionInterface.getDeclaredFields()).filter(f -> "JSON".equals(f.getName())).map(TestProjectionRegression::accessField).findAny().orElseGet(() -> {
 			try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(EXAMPLE_PACKAGE + "/" + name + ".json")) {
 				return new Scanner(is).useDelimiter("\\A").next();
@@ -148,22 +149,16 @@ public class TestProjectionRegression {
 	}
 
 	@Test
-	public void testParseJsonFile() throws Throwable {
+	public void testParseJsonString() throws Throwable {
 		long testStart = System.currentTimeMillis();
-		Object createProjection = new BCJSONProjector().onJSONString(json).createProjection(projectionInterface);
+		CharacterSource source = new StringCharacterSource(json);
+		Object createProjection = new BCJSONProjector().projectCharacterSource(source, projectionInterface);
 		long projectionCreated = System.currentTimeMillis();
 
 		Function<JBExpect, Object> accessor = getAccessorForMethod(method);
 
 		Object expected = accessor.apply(method.getAnnotation(JBExpect.class));
 
-		//Object expected = method.getAnnotation(JBExpect.class).singleValue();
-		//		if ("NOVALUE".equals(expected)) {
-		//			expected = method.getAnnotation(JBExpect.class).value();
-		//			if ((((String[]) expected).length == 1) && ("NOVALUE".equals(((String[]) expected)[0]))) {
-		//				expected = null;
-		//			}
-		//		}
 		method.setAccessible(true);
 		MethodHandle methodHandle = MethodHandles.lookup().in(method.getDeclaringClass()).unreflect(method).bindTo(createProjection);
 		long beforeProjectionCall = System.currentTimeMillis();
@@ -175,13 +170,6 @@ public class TestProjectionRegression {
 		}
 
 		try {
-			//			if (expected == null) {
-			//				assertNull(result);
-			//			}
-			//			else {
-			//				assertNotNull(result);
-			//				assertEquals(expected.getClass().isArray() ? Arrays.asList((Object[]) expected) : expected, result.getClass().isArray() ? Arrays.asList((Object[]) result) : result);
-			//			}
 			ensureEquals(expected, result);
 		} catch (AssertionError e) {
 			ArrayList<StackTraceElement> stackTrace = new ArrayList<>(Arrays.asList(e.getStackTrace()));
@@ -208,17 +196,15 @@ public class TestProjectionRegression {
 	private void ensureEquals(final Object expected, final Object result) {
 
 		if (result == null) {
-			Assert.assertTrue(Array.getLength(expected) == 0);
+			Assert.assertTrue("unexpected null result", Array.getLength(expected) == 0);
 			return;
 		}
 		if (result.getClass().isArray()) {
 			assertMultiEquals(expected, Array::getLength, Array::get, result, Array::getLength, Array::get);
-			//Assert.assertArrayEquals(Array.expected, (Object[]) result);
 			return;
 		}
 		if (result instanceof List) {
 			assertMultiEquals(expected, Array::getLength, Array::get, result, list -> ((List) list).size(), (list, p) -> ((List) list).get(p));
-			//Assert.assertArrayEquals(expected, ((List<?>) result).toArray());
 			return;
 		}
 		if (result instanceof Stream) {

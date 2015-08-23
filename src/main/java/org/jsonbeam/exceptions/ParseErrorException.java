@@ -53,6 +53,10 @@ public class ParseErrorException extends RuntimeException {
 		return json.subSequence(Math.max(0, middlePosition - 6), Math.min(json.length(), middlePosition + 6));
 	}
 
+	public ParseErrorException(final int i, final char illegalChar, final String expectedChar) {
+		super("Illegal char " + makePrintable("" + illegalChar) + " at pos " + i + ". Expected one of '" + expectedChar + "'");
+	}
+
 	public ParseErrorException(final int i, final char expectedChar, final char illegalChar) {
 		super("Illegal char " + makePrintable("" + illegalChar) + " at pos " + i + ". Expected " + makePrintable("" + expectedChar));
 	}

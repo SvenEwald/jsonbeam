@@ -40,7 +40,7 @@ public interface Reference {
 		throw new IllegalStateException(this.getClass() + " is sterile");
 	}
 
-	String apply(CharSequence array);
+	String apply();
 
 	default public void dump(final String json) {
 		dump(json, "", false);
@@ -49,7 +49,7 @@ public interface Reference {
 	default void dump(final String json, final String prefix, final boolean isTail) {
 		List<Reference> children = getChildren();
 		int length = children.size();
-		String value = length > 0 ? "" : apply(json);
+		String value = length > 0 ? "" : apply();
 		System.out.println(prefix + (isTail ? prefix.endsWith(" ") ? "└── " : "───" : "├── ") + value + " " + getClass().getSimpleName());
 
 		for (int i = 0; i < (length - 1); i++) {

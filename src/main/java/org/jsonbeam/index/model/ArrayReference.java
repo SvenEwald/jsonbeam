@@ -41,9 +41,9 @@ public class ArrayReference extends IndexReference {
 	}
 
 	@Override
-	public String apply(final CharSequence array) {
-		String hex=Integer.toHexString(System.identityHashCode(this));
-		return "{ArrayRef"+hex+"/childcount:"+children.size()+"}";
+	public String apply() {
+		String hex = Integer.toHexString(System.identityHashCode(this));
+		return "{ArrayRef" + hex + "/childcount:" + children.size() + "}";
 	}
 
 	@Override

@@ -45,15 +45,6 @@ public class TestPathReferenceStack {
 		assertTrue(oneElement.matches(oneElement2));
 	}
 
-	//	@Test
-	//	public void twoElementsArray() {
-	//		PathReferenceStack a = new PathReferenceStack().push(new KeyReference(".element")).push("[0]");
-	//		PathReferenceStack b = PathReferenceStack.parse(".element[0]");
-	//		assertFalse(a.isEmpty());
-	//		assertFalse(b.isEmpty());
-	//		ensureEquality(a, b);
-	//	}
-
 	@Test
 	public void partialMatch() {
 		PathReferenceStack a = PathReferenceStack.parse("$.menu.header");
@@ -88,9 +79,6 @@ public class TestPathReferenceStack {
 		assertFalse(a.isEmpty());
 		assertFalse(b.isEmpty());
 		ensureEquality(a, b);
-		//		assertTrue(a.endsWith(PathReferenceStack.parse(".header")));
-		//		assertTrue(a.endsWith(PathReferenceStack.parse(".menu.header")));
-		//		assertTrue(a.endsWith(b));
 	}
 
 	@Test
@@ -140,23 +128,4 @@ public class TestPathReferenceStack {
 		assertTrue(path2.equals(path1));
 		assertEquals(path1.hashCode(), path2.hashCode());
 	}
-
-	//	@Test
-	//	public void wildcardMatch() {
-	//		// new JSONPathParser("foo.*.bar").parse();
-	//
-	//		PathReferenceStack a = PathReferenceStack.parse(".foo.*.bar");
-	//		PathReferenceStack b = new PathReferenceStack().push(new KeyReference(".foo")).push(new KeyReference.("?")).push(new KeyReference(".bar"));
-	//		assertEquals(b, a);
-	//		assertTrue(a.matches( PathReferenceStack.parse(".foo.something.bar")));
-	//		assertFalse(a.matches( PathReferenceStack.parse(".foo.something.else.bar")));
-	//	}
-	//
-	//	@Test
-	//	public void allArrayElementsMatch() {
-	//		PathReferenceStack a = PathReferenceStack.parse("$.menu.items[*].id");
-	//		PathReferenceStack b = new PathReferenceStack().push("$").push(".menu").push(".items").push("[?]").push(".id");
-	//		assertEquals(b, a);
-	//		assertTrue(a.matches( PathReferenceStack.parse("$.menu.items[32].id")));
-	//	}
 }

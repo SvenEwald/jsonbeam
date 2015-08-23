@@ -19,6 +19,7 @@
 package org.jsonbeam.index;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.jsonbeam.index.keys.ElementKey;
 import org.jsonbeam.index.model.ObjectReference;
@@ -28,7 +29,7 @@ public interface JBResultCollector {
 
 	String currentPathAsString();
 
-	Optional<JBSubQueries> foundObjectPath(ObjectReference item);
+	Optional<JBSubQueries> foundObjectPath(Supplier<ObjectReference> item);
 
 	//FIXME: split result collecting into object,array and value paths. Maybe literal paths.
 

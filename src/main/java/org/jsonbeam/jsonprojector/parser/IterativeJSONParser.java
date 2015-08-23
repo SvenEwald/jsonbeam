@@ -21,6 +21,7 @@ package org.jsonbeam.jsonprojector.parser;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.jsonbeam.exceptions.ParseErrorException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
@@ -32,171 +33,168 @@ import org.jsonbeam.index.model.ArrayReference;
 import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.index.model.ObjectReference;
 import org.jsonbeam.index.model.Reference;
+import org.jsonbeam.io.CharacterSource;
 
 public class IterativeJSONParser extends JSONParser {
 
-	public IterativeJSONParser(final CharSequence json, final JBResultCollector resultCollector) {
+	public IterativeJSONParser(final CharacterSource json, final JBResultCollector resultCollector) {
 		super(json, resultCollector);
 	}
 
-	private void consumeAfterValue(final ElementKey currentKey) {
-		consumeWhitespace();
-		if (cursor >= json.length()) {
-			return;
+	public IndexReference createIndex() {
+		expectMoreData();
+		currentChar = json.nextConsumingWhitespace();
+		expect(currentChar, "{[");
+		ArrayDeque<Reference> arrayDeque = new ArrayDeque<>(32);
+		if (currentChar == '{') {
+			ObjectReference objRef = new ObjectReference();
+			arrayDeque.push(objRef);
+			return createIndex(ElementKey.ROOT, arrayDeque);
 		}
-		if (json.charAt(cursor) == ',') {
-			cursor++;
-			currentKey.next();
+		else if (currentChar == '[') {
+			ArrayReference ref = new ArrayReference();
+			arrayDeque.push(ref);
+			return createIndex(new ArrayIndexKey(0), arrayDeque);
 		}
+		throw new ParseErrorException(json.getPosition(), "{[", currentChar);
 	}
 
-	private void consumeColon() {
-		consumeWhitespace();
-		if (json.charAt(cursor) != ':') {
-			throw new ParseErrorException(cursor, json, ":", json.charAt(cursor));
-		}
-		++cursor;
-		consumeWhitespace();
-	}
-
-	public ParseResult createIndex() {
-		consumeWhitespace();
-		expect("{[");
-		if (json.charAt(cursor) == '[') {
-
-		}
-		return createIndex(0, new ArrayDeque<>(32));
-	}
-
-	public ParseResult createIndex(final int start, final Deque<Reference> currentRef) {
+	public IndexReference createIndex(ElementKey currentKey, final Deque<Reference> currentRef) {
 		assert resultCollector != null;
-		cursor = start;
-		ElementKey currentKey = ElementKey.ROOT;
-		while (cursor < json.length()) { // parse value
+		nextChar: while (json.hasNext()) {
+			char c = json.nextConsumingWhitespace();
+			sameChar: while (true) {
+				if (c == '{') { // begin of object
+					ObjectReference objRef = new ObjectReference();
+					currentRef.push(objRef);
+					if (ElementKey.ROOT != currentKey) {
+						resultCollector.pushPath(currentKey);
+						foundObjectPath(currentRef, currentKey, () -> objRef);
+						c = consumeAfterValue(currentKey);
+						continue sameChar;
+					}
+					continue nextChar;
+				}
+				if (c == '}') { // end of object
+					if (currentRef.isEmpty()) {
+						throw new ParseErrorException(json.getPosition(), "Unexpected object end at pos {0}");
+					}
+					if (!(currentRef.peek() instanceof ObjectReference)) {
+						throw new ParseErrorException(json.getPosition(), "Unexcpected } at pos {0}");
+					}
+					Reference reference = currentRef.pop();
+					if (resultCollector.isPathEmpty()) {
+						if (!(reference instanceof IndexReference)) {
+							throw new ParseErrorException(json.getPosition(), "Unexpected array content");
+						}
+						return (IndexReference) reference;//new ParseResult(reference, json.getPosition());
+					}
+					currentKey = resultCollector.popPath();
+					currentRef.peek().addChild(currentKey, reference);
+					//				if (!(currentRef instanceof ObjectReference)) {
+					//					//FIXME: kann das überhaupt sein?
+					//					currentKey = KeyReference.ARRAY_ENTRY;
+					//				}
+					c = consumeAfterValue(currentKey);
+					continue sameChar;
+				}
+				// if (char[i] == '\\') {
+				// ++i; // TODO: mark current value as quoted
+				// continue;
+				// }
+				if (c == '[') {
+					ArrayReference ref = new ArrayReference();
+					if (currentKey != ElementKey.ROOT) {
+						resultCollector.pushPath(currentKey);
 
-			char c = consumeWhitespace();
-			if (c == '{') { // begin of object
-				++cursor;
-				ObjectReference objRef = new ObjectReference();
-				currentRef.push(objRef);
-				if (ElementKey.ROOT != currentKey) {
-					resultCollector.pushPath(currentKey);
-					foundObjectPath(currentRef, currentKey, objRef);
+					}
+					currentRef.push(ref);
+					currentKey = new ArrayIndexKey(0);
+					continue nextChar;
 				}
-				continue;
-			}
+				if (c == ']') {
+					if (currentRef.isEmpty()) {
+						throw new ParseErrorException(json.getPosition(), "Unexpected array end");
+					}
+					Reference reference = currentRef.pop();
+					if (currentRef.isEmpty()) {
+						if (!(reference instanceof IndexReference)) {
+							throw new ParseErrorException(json.getPosition(), "Unexpected array content");
+						}
+						return (IndexReference) reference;
+					}
+					currentKey = resultCollector.popPath();
+					currentRef.peek().addChild(currentKey, reference);
+					c = consumeAfterValue(currentKey);
+					continue sameChar;
+				}
+				if (currentRef.isEmpty()) {
+					throw new ParseErrorException(json.getPosition(), "Unexpected content at pos {0} after object or array");
+				}
+				// parseValue
+				if (currentRef.peek() instanceof ObjectReference) {
+					if (c == '"') {
+						currentKey = parseJSONKey(ch -> ch == '"');
+						expectMoreData();
+						c = json.nextConsumingWhitespace();//consumeColon();
+						if (c != ':') {
+							throw new ParseErrorException(json.getPosition(), ':', c);
+						}
+					}
+					else {
+						currentKey = parseUnquotedJSONKey(c);// = parseJSONKey(ch -> ch == ':');
 
-			if (c == '}') { // end of object
-				if (currentRef.isEmpty()) {
-					throw new ParseErrorException(cursor, "Unexpected object end");
+					}
+					expectMoreData();
+					c = json.nextConsumingWhitespace();
 				}
-				if (!(currentRef.peek() instanceof ObjectReference)) {
-					throw new ParseErrorException(cursor, "Unexcpected }");
-				}
-				++cursor;
-				Reference reference = currentRef.pop();
-				if (resultCollector.isPathEmpty()) {
-					return new ParseResult(reference, cursor);
-				}
-				currentKey = resultCollector.popPath();
-				currentRef.peek().addChild(currentKey, reference);
-				//				if (!(currentRef instanceof ObjectReference)) {
-				//					//FIXME: kann das überhaupt sein?
-				//					currentKey = KeyReference.ARRAY_ENTRY;
-				//				}
-				consumeAfterValue(currentKey);
-				continue;
-			}
-			// if (char[i] == '\\') {
-			// ++i; // TODO: mark current value as quoted
-			// continue;
-			// }
-			if (c == '[') {
-				++cursor;
-				ArrayReference ref = new ArrayReference();
-				if (currentKey != ElementKey.ROOT) {
-					resultCollector.pushPath(currentKey);
 
+				if ((c == '{') || (c == '[')) {
+					continue sameChar;
 				}
-				currentRef.push(ref);
-				currentKey = new ArrayIndexKey(0);
-				continue;
-			}
-			if (c == ']') {
-				if (currentRef.isEmpty()) {
-					throw new ParseErrorException(cursor, "Unexpected array end");
-				}
-				++cursor;
-				Reference reference = currentRef.pop();
-				if (currentRef.isEmpty()) {
-					return new ParseResult(reference, cursor);
-				}
-				currentKey = resultCollector.popPath();
-				currentRef.peek().addChild(currentKey, reference);
-				consumeAfterValue(currentKey);
-				continue;
-			}
-			if (currentRef.isEmpty()) {
-				throw new ParseErrorException(cursor, "Unexpected content after object or array");
-			}
-			// parseValue
-			if (currentRef.peek() instanceof ObjectReference) {
+				Reference valueRef;
 				if (c == '"') {
-					currentKey = parseJSONKey(json, cursor + 1, ch -> ch == '"');
-					consumeColon();
+					valueRef = parseJSONString(ch -> ch == '"');
+					expectMoreData();
+					c = json.nextConsumingWhitespace();
 				}
 				else {
-					currentKey = parseJSONKey(json, cursor, ch -> (ch == ':') || (ch <= ' '));
-					if (json.charAt(cursor) <= ' ') {
-						consumeColon();
-					}
+					valueRef = parseUnquotedJSONString(c);
+					c = currentChar;
+
 				}
-
+				currentRef.peek().addChild(currentKey, valueRef);
+				resultCollector.pushPath(currentKey);
+				resultCollector.foundValuePath(valueRef);
+				resultCollector.popPath();
+				if (',' == c) {
+					currentKey.next();
+					continue nextChar;
+				}
+				if (c <= ' ') {
+					c = json.nextConsumingWhitespace();
+				}
+				continue sameChar;
 			}
-			consumeWhitespace();
-
-			if ((json.charAt(cursor) == '{') || (json.charAt(cursor) == '[')) {
-				continue;
-			}
-			Reference valueRef;
-			if (json.charAt(cursor) == '"') {
-				valueRef = parseJSONString(json, cursor + 1, ch -> ch == '"');
-			}
-			else {
-				valueRef = parseUnquotedJSONString(json, cursor);
-			}
-			currentRef.peek().addChild(currentKey, valueRef);
-			resultCollector.pushPath(currentKey);
-			resultCollector.foundValuePath(valueRef);
-			resultCollector.popPath();
-			consumeAfterValue(currentKey);
 		}
-		throw new UnexpectedEOF(cursor, json);
+		throw new UnexpectedEOF(json.getPosition());
 	}
 
-	private void foundObjectPath(final Deque<Reference> currentRef, final ElementKey currentKey, final ObjectReference objRef) {
+	protected void foundObjectPath(final Deque<Reference> currentRef, final ElementKey currentKey, final Supplier<ObjectReference> objRef) {
 		Optional<JBSubQueries> subCol = resultCollector.foundObjectPath(objRef);
 		if (subCol.isPresent()) {
 			JBSubQueries subQueries = subCol.get();
-			ParseResult result = new IterativeJSONParser(json, subQueries).createIndex(cursor, currentRef);
-			assert result.getRootReference() instanceof ObjectReference;
-			((IndexReference) result.getRootReference()).addSubCollector(subQueries);
+			IndexReference reference = new IterativeJSONParser(json, subQueries).createIndex(ElementKey.ROOT, currentRef);
+			reference.addSubCollector(subQueries);
 			ElementKey popPath = resultCollector.popPath();
 			//Reference objOrArray = currentRef.pop();
 			//						if (popPath instanceof ArrayIndexKey) {
 			//							currentKey = ((ArrayIndexKey)popPath).next();
 			//						}
 			//	objRef.addChild(currentKey, result.getRootReference());//FIXME: Behandlung für array elemente fehlt
-			cursor = result.getEndPosition();
+			//cursor = result.getEndPosition();
 
-			consumeAfterValue(currentKey);
+			//consumeAfterValue(currentChar, currentKey);
 		}
 	}
-
-	private void expect(final String expectedChars) {
-		if (-1 == expectedChars.indexOf(json.charAt(cursor))) {
-			throw new ParseErrorException(cursor, "", expectedChars, json.charAt(cursor));//FIXME
-		}
-	}
-
 }

@@ -56,7 +56,7 @@ public class ObjectReference extends IndexReference {
 	}
 
 	@Override
-	public String apply(final CharSequence array) {
+	public String apply() {
 		String hex = Integer.toHexString(System.identityHashCode(this));
 		return "{ObjRef" + hex + "/childcount:" + children.size() + "}";
 	}

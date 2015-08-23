@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,14 +56,12 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		return newLookupInstance.in(m.getDeclaringClass()).unreflectSpecial(m, m.getDeclaringClass()).bindTo(p).invokeWithArguments(a);
 	};
 	private final static Set<Class<?>> SUPPORTED_GENERIC_TYPES = new HashSet<>(Arrays.asList(List.class, Optional.class, Stream.class, Set.class, Iterable.class));
-	private final Map<Class<?>, BiFunction<CharSequence, Stream<Reference>, Stream<?>>> TYPE_CONVERTERS = new HashMap<>();
+	private final Map<Class<?>, Function<Stream<Reference>, Stream<?>>> TYPE_CONVERTERS = new HashMap<>();
 	private final Map<Method, InvocationHandler> handlers = new HashMap<>();
 	private final JBResultProvider queries;
 	private final BCJSONProjector projector;
 
-	//	private final Class<?> projectionInterface;
-
-	private final CharSequence json;
+	//private final CharSequence json;
 
 	private static final class PrimitivesHolder {
 		private final static Map<Class<?>, Object> PRIMITIVE_DEFAULTS = new HashMap<>();
@@ -87,15 +84,15 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 			PRIMITIVE_ARRAY_DEFAULTS.put(Float.TYPE, new float[0]);
 			PRIMITIVE_ARRAY_DEFAULTS.put(Double.TYPE, new double[0]);
 		}
-		private final static Map<Class<?>, BiFunction<CharSequence, Reference, Object>> PRIMITIVE_CONVERTERS = new HashMap<>();
+		private final static Map<Class<?>, Function<Reference, Object>> PRIMITIVE_CONVERTERS = new HashMap<>();
 		static {
-			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (json, r) -> Boolean.valueOf(Reference.TRUE == r));
-			PRIMITIVE_CONVERTERS.put(Byte.TYPE, (json, r) -> Byte.valueOf(r.apply(json)));
-			PRIMITIVE_CONVERTERS.put(Short.TYPE, (json, r) -> Short.valueOf(r.apply(json)));
-			PRIMITIVE_CONVERTERS.put(Integer.TYPE, (json, r) -> Integer.valueOf(r.apply(json)));
-			PRIMITIVE_CONVERTERS.put(Long.TYPE, (json, r) -> Long.valueOf(r.apply(json)));
-			PRIMITIVE_CONVERTERS.put(Float.TYPE, (json, r) -> Float.valueOf(r.apply(json)));
-			PRIMITIVE_CONVERTERS.put(Double.TYPE, (json, r) -> Double.valueOf(r.apply(json)));
+			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (r) -> Boolean.valueOf(Reference.TRUE == r));
+			PRIMITIVE_CONVERTERS.put(Byte.TYPE, (r) -> Byte.valueOf(r.apply()));
+			PRIMITIVE_CONVERTERS.put(Short.TYPE, (r) -> Short.valueOf(r.apply()));
+			PRIMITIVE_CONVERTERS.put(Integer.TYPE, (r) -> Integer.valueOf(r.apply()));
+			PRIMITIVE_CONVERTERS.put(Long.TYPE, (r) -> Long.valueOf(r.apply()));
+			PRIMITIVE_CONVERTERS.put(Float.TYPE, (r) -> Float.valueOf(r.apply()));
+			PRIMITIVE_CONVERTERS.put(Double.TYPE, (r) -> Double.valueOf(r.apply()));
 		}
 	}
 
@@ -103,7 +100,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 
 	private Object result2Subprojection(final Class<?> effectiveReturnType, final Reference r) {
 		//RESULT2SUBPROJECTION = (effectiveReturnType, r) ->
-		return projector.projectReference(json, (IndexReference) r, effectiveReturnType);
+		return projector.projectReference((IndexReference) r, effectiveReturnType);
 	}
 
 	private static Function<Stream<?>, Object> unStreamerForReturnType(final Class<?> returnType) {
@@ -129,8 +126,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		return s -> s.findFirst().orElse(null);
 	}
 
-	public BCProjectionInvocationHandler(final CharSequence json, final JBResultProvider q, final BCJSONProjector bcjsonProjector, final ProjectionType projectionInterface) {
-		this.json = json;
+	public BCProjectionInvocationHandler(final JBResultProvider q, final BCJSONProjector bcjsonProjector, final ProjectionType projectionInterface) {
 		this.queries = q;
 		this.projector = bcjsonProjector;
 		//TODO: Make type converter independent from current json
@@ -155,12 +151,12 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 					return (p, m, a) -> PrimitivesHolder.PRIMITIVE_ARRAY_DEFAULTS.get(effectiveReturnType);
 				}
 			}
-			return (p, m, a) -> results.isEmpty() ? PrimitivesHolder.PRIMITIVE_DEFAULTS.get(effectiveReturnType) : PrimitivesHolder.PRIMITIVE_CONVERTERS.get(effectiveReturnType).apply(json, results.get(0));
+			return (p, m, a) -> results.isEmpty() ? PrimitivesHolder.PRIMITIVE_DEFAULTS.get(effectiveReturnType) : PrimitivesHolder.PRIMITIVE_CONVERTERS.get(effectiveReturnType).apply(results.get(0));
 		}
 
-		BiFunction<CharSequence, Stream<Reference>, Stream<?>> typeConverter = TYPE_CONVERTERS.computeIfAbsent(effectiveReturnType, this::calcTypeConverter);
-		BiFunction<CharSequence, Stream<Reference>, Object> invocationFunction = typeConverter.andThen(unStreamerForReturnType(rawReturnType));
-		return (p, m, a) -> invocationFunction.apply(json, results.stream());
+		Function<Stream<Reference>, Stream<?>> typeConverter = TYPE_CONVERTERS.computeIfAbsent(effectiveReturnType, this::calcTypeConverter);
+		Function<Stream<Reference>, Object> invocationFunction = typeConverter.andThen(unStreamerForReturnType(rawReturnType));
+		return (p, m, a) -> invocationFunction.apply(results.stream());
 	}
 
 	private Class<?> determineEffectiveReturnType(final Method m_) {
@@ -188,9 +184,9 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		//return handlers.getOrDefault(method, ERROR_INVOKER).invoke(proxy, method, args);
 	}
 
-	private BiFunction<CharSequence, Stream<Reference>, Stream<?>> calcTypeConverter(final Class<?> effectiveReturnType) {
+	private Function<Stream<Reference>, Stream<?>> calcTypeConverter(final Class<?> effectiveReturnType) {
 		if (ProjectionInterfaceHelper.isProjectionInterface(effectiveReturnType)) {
-			return (json, s) -> s.filter(r -> r instanceof IndexReference).map(r -> result2Subprojection(effectiveReturnType, r));
+			return s -> s.filter(r -> r instanceof IndexReference).map(r -> result2Subprojection(effectiveReturnType, r));
 		}
 		return projector.getGlobalTypeConverter(effectiveReturnType);
 		//

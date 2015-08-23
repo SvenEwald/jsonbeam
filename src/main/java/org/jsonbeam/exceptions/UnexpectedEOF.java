@@ -26,4 +26,7 @@ public class UnexpectedEOF extends ParseErrorException {
 		super(cursor, "Unexpected end of input at pos " + cursor + "'" + makePrintable(json.subSequence(Math.max(0, cursor - 20), cursor)) + "'");
 	}
 
+	public UnexpectedEOF(final int cursor) {
+		super(cursor, "Unexpected end of input at pos " + cursor);
+	}
 }

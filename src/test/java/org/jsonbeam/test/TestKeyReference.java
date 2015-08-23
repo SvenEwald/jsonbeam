@@ -20,6 +20,7 @@ package org.jsonbeam.test;
 
 import org.jsonbeam.index.keys.ArrayIndexKey;
 import org.jsonbeam.index.keys.KeyReference;
+import org.jsonbeam.io.StringCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -30,7 +31,7 @@ public class TestKeyReference {
 
 	@Test
 	public void ensureEquals() {
-		KeyReference key = new KeyReference(1, 1 + "huhu".length(), "huhu".hashCode(), "ahuhub");
+		KeyReference key = new KeyReference(1, "huhu".length(), "huhu".hashCode(), new StringCharacterSource("ahuhub"));
 		assertEquals(key, new KeyReference("huhu"));
 	}
 
@@ -50,7 +51,5 @@ public class TestKeyReference {
 		first.next();
 		assertTrue(fourth.equals(first));
 		assertTrue(first.equals(fourth));
-
 	}
-
 }

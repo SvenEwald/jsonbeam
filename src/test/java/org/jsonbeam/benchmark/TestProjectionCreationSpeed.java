@@ -20,6 +20,8 @@ package org.jsonbeam.benchmark;
 
 import java.util.Scanner;
 
+import org.jsonbeam.io.CharacterSource;
+import org.jsonbeam.io.StringCharacterSource;
 import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
 import org.jsonbeam.test.examples.DefiantExample2;
 import org.junit.Test;
@@ -35,7 +37,8 @@ public class TestProjectionCreationSpeed extends AbstractBenchmark {
 	@Test
 	public void testDefiantExample3() {
 		//		for (int i = 0; i < 1; ++i) {
-		DefiantExample2 projection = new BCJSONProjector().projectJSONString(json, DefiantExample2.class);
+		CharacterSource source = new StringCharacterSource(json);
+		DefiantExample2 projection = new BCJSONProjector().projectCharacterSource(source, DefiantExample2.class);
 		projection.getBalances();
 		projection.getSubSubProjection();
 		//		}

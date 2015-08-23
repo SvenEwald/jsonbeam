@@ -19,21 +19,33 @@
 package org.jsonbeam.index.model.values;
 
 import org.jsonbeam.index.model.Reference;
+import org.jsonbeam.io.CharacterSource;
 
 public final class StringValueReference implements Reference {
 
-	private final int end;
+	private final int length;
 	private final int start;
+	private final CharacterSource source;
 
-	public StringValueReference(final int start, final int end) {
+	public StringValueReference(final int start, final int length, final CharacterSource source) {
 		this.start = start;
-		this.end = end;
+		this.length = length;
+		this.source = source;
 	}
 
 	@Override
-	public String apply(final CharSequence array) {
-		return new StringBuilder(array.subSequence(start, end)).toString();
-		//return new String(array,start,end-start);
+	public String apply() {
+		StringBuilder builder = new StringBuilder();
+		CharacterSource source2 = source.getSourceFromPosition(start);
+		for (int i = 0; i < length; ++i) {
+			builder.append(source2.getNext());
+		}
+		return builder.toString();//source.getSourceFromPosition(start).asCharSequence(length).toString();
+		//return new StringBuilder(source.getSequence(start, end)).toString();
 	}
 
+	@Override
+	public String toString() {
+		return apply();
+	}
 }

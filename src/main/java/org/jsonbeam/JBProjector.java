@@ -18,7 +18,30 @@
  */
 package org.jsonbeam;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.jsonbeam.evaluation.DefaultEvaluator;
+import org.jsonbeam.io.BytesCharacterSource;
+import org.jsonbeam.io.FileCharacterSource;
+import org.jsonbeam.io.StringCharacterSource;
+import org.jsonbeam.jsonprojector.annotations.JBDocURL;
+import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
+import org.jsonbeam.jsonprojector.projector.intern.CanEvaluateOrProject;
+import org.jsonbeam.utils.IOHelper;
+
 public class JBProjector {
+
+	public JBProjector(final Flags... optionalFlags) {
+		this.delegate = new BCJSONProjector(optionalFlags);
+	}
+
+	private final BCJSONProjector delegate;
 
 	public enum Flags {
 		/**
@@ -37,4 +60,64 @@ public class JBProjector {
 
 	}
 
+	/**
+	 * Collection of methods used to read JSON data. Sorry, you must specify the {@link Charset} of your data. There is
+	 * deliberately no default character set. See {@link StandardCharsets} for convenient constants.
+	 *
+	 * @param charset
+	 * @return
+	 */
+
+	public ProjectionInput input(final Charset charset) {
+		return new ProjectionInput() {
+
+			@Override
+			public CanEvaluateOrProject url(final URL url) {
+				return new DefaultEvaluator(delegate,//
+						() -> IOHelper.toBuffer(() -> url.openConnection().getInputStream(), (is, l) -> new BytesCharacterSource(is, l, charset)));
+			}
+
+			@Override
+			public CanEvaluateOrProject url(final String url) {
+				try {
+					return url(new URL(url));
+				} catch (MalformedURLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			@Override
+			public CanEvaluateOrProject stream(final InputStream is) {
+				return new DefaultEvaluator(delegate, () -> IOHelper.toBuffer(is, (s, l) -> new BytesCharacterSource(s, l, charset)));
+			}
+
+			@Override
+			public <T> T fromURLAnnotation(final Class<T> projectionInterface, final Object... optionalParams) throws IOException {
+				JBDocURL annotation = projectionInterface.getAnnotation(JBDocURL.class);
+				if (annotation == null) {
+					throw new IllegalArgumentException("There is no " + JBDocURL.class.getSimpleName() + " annotation on the interface " + projectionInterface);
+				}
+				return url(annotation.value()).createProjection(projectionInterface);
+			}
+
+			@Override
+			public CanEvaluateOrProject file(final String filename) {
+				return file(new File(filename));
+			}
+
+			@Override
+			public CanEvaluateOrProject file(final File file) {
+				return new DefaultEvaluator(delegate, () -> new FileCharacterSource(file, charset));
+			}
+
+			@Override
+			public CanEvaluateOrProject resource(final String resourceName) {
+				return new DefaultEvaluator(delegate, () -> null);
+			}
+		};
+	}
+
+	public CanEvaluateOrProject onJSONString(final CharSequence json) {
+		return new DefaultEvaluator(delegate, () -> new StringCharacterSource(json));
+	}
 }

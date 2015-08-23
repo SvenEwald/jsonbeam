@@ -84,17 +84,17 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		return true;
 	}
 
-	public boolean dumpResults(final CharSequence buffer) {
+	public boolean dumpResults() {
 		System.out.println("Query results:");
 		results.entrySet().forEach(e -> {
-			System.out.println(e.getKey().toString() + ":(" + e.getValue().size() + ")" + e.getValue().stream().map(r -> r.apply(buffer)).collect(Collectors.joining(",")));
+			System.out.println(e.getKey().toString() + ":(" + e.getValue().size() + ")" + e.getValue().stream().map(r -> r.apply()).collect(Collectors.joining(",")));
 		});
 		return true;
 	}
 
 	@Override
-	public Optional<JBSubQueries> foundObjectPath(final ObjectReference item) {
-		//		System.out.println(DH.oid(this)+" found object path:"+currentPath+ " direct hit:"+directHits.containsKey(currentPath));
+	public Optional<JBSubQueries> foundObjectPath(final Supplier<ObjectReference> item) {
+		//System.out.println(DH.oid(this) + " found object path:" + currentPath + " direct hit:" + directHits.containsKey(currentPath));
 		if (currentPath.isEmpty()) {
 			return Optional.empty();
 		}
@@ -108,8 +108,11 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		PathReferenceStack pathReferenceStack2 = directHits.get(currentPath);
 		Optional<JBSubQueries> subQueries = Optional.empty();
 		if (pathReferenceStack2 != null) {
-			storeResult(pathReferenceStack2, item);
-			subQueries = Optional.ofNullable(path2SubQueries.get(pathReferenceStack2).get());//pathReferenceStack2.getSubCollector();
+			storeResult(pathReferenceStack2, item.get());
+			Supplier<JBSubQueries> supplier = path2SubQueries.get(pathReferenceStack2);
+			if (supplier != null) {
+				subQueries = Optional.ofNullable(supplier.get());//pathReferenceStack2.getSubCollector();
+			}
 		}
 		Set<PathReferenceStack> patternsToMatch = patterns.get(lastElement);
 		if (patternsToMatch == null) {
@@ -129,7 +132,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 			if (!pattern.matches(currentPath)) {
 				continue;
 			}
-			storeResult(pattern, item);
+			storeResult(pattern, item.get());
 			//if (pattern.getSubCollector().isPresent()) {
 			if (path2SubQueries.containsKey(pattern)) {//FIXME: this neeeeeds cleanup
 				JBSubQueries patternQueries = path2SubQueries.get(pattern).get();//pattern.getSubCollector().get();
@@ -152,6 +155,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 			return;
 		}
 		PathReferenceStack pathReferenceStack2 = directHits.get(currentPath);
+		//directHits.values().toArray()[2].equals(currentPath)
 		if (pathReferenceStack2 != null) {
 			storeResult(pathReferenceStack2, item);
 		}

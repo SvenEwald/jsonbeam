@@ -18,8 +18,22 @@
  */
 package org.jsonbeam.jsonprojector.projector.intern;
 
+import org.jsonbeam.JPathEvaluator;
+
 public interface CanEvaluateOrProject {
 
-	<T> T createProjection(Class<T> type);
+	/**
+	 * @param jpath
+	 *            to be evaluated on input
+	 * @return EvaluationBuilder to choose target type
+	 */
+	JPathEvaluator evalJPath(String jpath);
 
+	//JPathOptionalEvaluator ifPresent(String jpath);
+
+	/**
+	 * @param type
+	 * @return a projection
+	 */
+	<T> T createProjection(Class<T> type);
 }

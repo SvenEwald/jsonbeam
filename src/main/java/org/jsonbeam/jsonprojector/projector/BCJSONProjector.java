@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import java.lang.reflect.Proxy;
@@ -33,35 +33,35 @@ import org.jsonbeam.index.JBQueries;
 import org.jsonbeam.index.JBSubQueries;
 import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.index.model.Reference;
+import org.jsonbeam.io.CharacterSource;
 import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
 import org.jsonbeam.jsonprojector.projector.intern.BCProjectionInvocationHandler;
-import org.jsonbeam.jsonprojector.projector.intern.CanEvaluateOrProject;
 import org.jsonbeam.jsonprojector.utils.ProjectionInterfaceHelper;
 
 public class BCJSONProjector {
 
-	private final Map<Class<?>, BiFunction<CharSequence, Stream<Reference>, Stream<?>>> GLOBAL_TYPE_CONVERTERS = new HashMap<>();
+	private final Map<Class<?>, Function<Stream<Reference>, Stream<?>>> GLOBAL_TYPE_CONVERTERS = new HashMap<>();
 
 	//private final void initTypeConverterMap()
 	{
-		GLOBAL_TYPE_CONVERTERS.put(Boolean.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Boolean.valueOf(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Boolean.TYPE, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Boolean.valueOf(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Byte.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Byte.valueOf(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Byte.TYPE, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Byte.valueOf(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Character.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Character.valueOf(str.charAt(0))));
-		GLOBAL_TYPE_CONVERTERS.put(Character.TYPE, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Character.valueOf(str.charAt(0))));
-		GLOBAL_TYPE_CONVERTERS.put(Short.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Short.valueOf(Short.parseShort(str))));
-		GLOBAL_TYPE_CONVERTERS.put(Short.TYPE, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Short.valueOf(Short.parseShort(str))));
-		GLOBAL_TYPE_CONVERTERS.put(Integer.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Integer.valueOf(Integer.parseInt(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Boolean.class, (s) -> s.map(pos -> pos.apply()).map(str -> Boolean.valueOf(str)));
+		GLOBAL_TYPE_CONVERTERS.put(Boolean.TYPE, (s) -> s.map(pos -> pos.apply()).map(str -> Boolean.valueOf(str)));
+		GLOBAL_TYPE_CONVERTERS.put(Byte.class, (s) -> s.map(pos -> pos.apply()).map(str -> Byte.valueOf(str)));
+		GLOBAL_TYPE_CONVERTERS.put(Byte.TYPE, (s) -> s.map(pos -> pos.apply()).map(str -> Byte.valueOf(str)));
+		GLOBAL_TYPE_CONVERTERS.put(Character.class, (s) -> s.map(pos -> pos.apply()).map(str -> Character.valueOf(str.charAt(0))));
+		GLOBAL_TYPE_CONVERTERS.put(Character.TYPE, (s) -> s.map(pos -> pos.apply()).map(str -> Character.valueOf(str.charAt(0))));
+		GLOBAL_TYPE_CONVERTERS.put(Short.class, (s) -> s.map(pos -> pos.apply()).map(str -> Short.valueOf(Short.parseShort(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Short.TYPE, (s) -> s.map(pos -> pos.apply()).map(str -> Short.valueOf(Short.parseShort(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Integer.class, (s) -> s.map(pos -> pos.apply()).map(str -> Integer.valueOf(Integer.parseInt(str))));
 		//		TYPECONVERTERS.put(Integer.TYPE, s -> s.map(pos -> pos.apply(json)).mapToInt(str -> Integer.parseInt(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Long.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Long.valueOf(Long.parseLong(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Long.class, (s) -> s.map(pos -> pos.apply()).map(str -> Long.valueOf(Long.parseLong(str))));
 		//		TYPECONVERTERS.put(Long.TYPE, s -> s.map(pos -> pos.apply(json)).mapToLong(str -> Long.parseLong(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Double.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Double.valueOf(Double.parseDouble(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Double.class, (s) -> s.map(pos -> pos.apply()).map(str -> Double.valueOf(Double.parseDouble(str))));
 		//		TYPECONVERTERS.put(Double.TYPE, s -> s.map(pos -> pos.apply(json)).mapToDouble(str -> Double.parseDouble(str)));
-		GLOBAL_TYPE_CONVERTERS.put(Float.class, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Float.valueOf(Float.parseFloat(str))));
-		GLOBAL_TYPE_CONVERTERS.put(Float.TYPE, (json, s) -> s.map(pos -> pos.apply(json)).map(str -> Float.valueOf(Float.parseFloat(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Float.class, (s) -> s.map(pos -> pos.apply()).map(str -> Float.valueOf(Float.parseFloat(str))));
+		GLOBAL_TYPE_CONVERTERS.put(Float.TYPE, (s) -> s.map(pos -> pos.apply()).map(str -> Float.valueOf(Float.parseFloat(str))));
 
-		GLOBAL_TYPE_CONVERTERS.put(String.class, (json, s) -> s.map(pos -> pos.apply(json)));
+		GLOBAL_TYPE_CONVERTERS.put(String.class, (s) -> s.map(pos -> pos.apply()));
 
 		// missing types: date, BigDecimal, Number
 	}
@@ -109,29 +109,34 @@ public class BCJSONProjector {
 		this.flags = ProjectionInterfaceHelper.unfoldEnumArray(optionalFlags);
 	}
 
-	public CanEvaluateOrProject onJSONString(final CharSequence json) {
-		return new CanEvaluateOrProject() {
-			@Override
-			public <T> T createProjection(final Class<T> type) {
-				return projectJSONString(json, type);
-			}
-		};
-	}
+	//	public CanEvaluateOrProject onJSONString(final CharSequence json) {
+	//		return new CanEvaluateOrProject() {
+	//			@Override
+	//			public <T> T createProjection(final Class<T> type) {
+	//				return projectJSONString(json, type);
+	//			}
+	//
+	//			@Override
+	//			public JPathEvaluator evalJPath(String jpath) {
+	//				// TODO Auto-generated method stub
+	//				return null;
+	//			}
+	//		};
+	//	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T projectJSONString(final CharSequence json, final Class<T> projectionInterface) {
+	public <T> T projectCharacterSource(final CharacterSource json, final Class<T> projectionInterface) {
 		Objects.requireNonNull(json, "Parameter json must not be null");
 		Objects.requireNonNull(json, "Parameter projectionInterface must not be null");
-
 		ProjectionType projectionType = class2ProjectionType(projectionInterface);
 		JBQueries rootQueries = calculateQueriesForRootProjection(projectionType);
 
 		//	assert rootQueries.dumpQueryGraph();
 
 		IterativeJSONParser jsonParser = new IterativeJSONParser(json, rootQueries);
-		Reference rootReference = jsonParser.createIndex().getRootReference();
-		//assert rootQueries.dumpResults(json);
-		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(json, rootQueries, this, projectionType);
+		IndexReference rootReference = jsonParser.createIndex();
+		//assert rootQueries.dumpResults();
+		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(rootQueries, this, projectionType);
 		return ((T) Proxy.newProxyInstance(projectionInterface.getClassLoader(), projectionType.getImplementedInterfaces(), projectionInvocationHandler));
 
 	}
@@ -141,22 +146,22 @@ public class BCJSONProjector {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T projectReference(final CharSequence json, final IndexReference r, final Class<T> projectionInterface) {
+	public <T> T projectReference(final IndexReference r, final Class<T> projectionInterface) {
 		assert r.getSubCollector().isPresent();
 
 		//rootQueries.dumpQueryGraph();
 		ProjectionType projectionType = class2ProjectionType(projectionInterface);
 
-		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(json, r.getSubCollector().get(), this, projectionType);
+		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(r.getSubCollector().get(), this, projectionType);
 		return ((T) Proxy.newProxyInstance(projectionInterface.getClassLoader(), projectionType.getImplementedInterfaces(), projectionInvocationHandler));
 
 	}
 
-	public BiFunction<CharSequence, Stream<Reference>, Stream<?>> getGlobalTypeConverter(final Class<?> effectiveReturnType) {
+	public Function<Stream<Reference>, Stream<?>> getGlobalTypeConverter(final Class<?> effectiveReturnType) {
 		return GLOBAL_TYPE_CONVERTERS.computeIfAbsent(effectiveReturnType, this::calcGlobalTypeConverter);
 	}
 
-	BiFunction<CharSequence, Stream<Reference>, Stream<?>> calcGlobalTypeConverter(final Class<?> effectiveReturnType) {
+	Function<Stream<Reference>, Stream<?>> calcGlobalTypeConverter(final Class<?> effectiveReturnType) {
 		throw new IllegalArgumentException("Type converter for class " + effectiveReturnType + " not implemented yet");
 	}
 }

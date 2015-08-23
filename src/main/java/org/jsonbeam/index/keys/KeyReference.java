@@ -18,21 +18,28 @@
  */
 package org.jsonbeam.index.keys;
 
+import org.jsonbeam.io.CharacterSource;
+import org.jsonbeam.io.StringCharacterSource;
+
 public class KeyReference implements ElementKey {
 	final int hash;
 	final int start;
-	final int end;
-	final CharSequence buffer;
+	//	final int end;
+	final int length;
+	final CharacterSource buffer;
 
-	public KeyReference(final int start, final int end, final int hash, final CharSequence buffer) {
+	public KeyReference(final int start, final int length, final int hash, final CharacterSource buffer) {
 		this.start = start;
-		this.end = end;
+		this.length = length;
 		this.hash = hash;
 		this.buffer = buffer;
 	}
 
 	public KeyReference(final String string) {
-		this(0, string.length(), string.hashCode(), string);
+		this.start = 0;
+		this.length = string.length();
+		this.hash = string.hashCode();
+		this.buffer = new StringCharacterSource(string);
 	}
 
 	@Override
@@ -52,13 +59,18 @@ public class KeyReference implements ElementKey {
 		if (other.length() != length()) {
 			return false;
 		}
-		CharSequence ob = other.buffer;
+		CharacterSource ob = other.buffer;
 		int a = start;
 		int b = other.start;
+		CharacterSource asource = buffer.getSourceFromPosition(start);
+		CharacterSource bsource = other.buffer.getSourceFromPosition(other.start);
 		for (int i = 0; i < length(); i++) {
-			if (ob.charAt(b++) != buffer.charAt(a++)) {
+			if (asource.getNext() != bsource.getNext()) {
 				return false;
 			}
+			//			if (ob.charAt(b++) != buffer.charAt(a++)) {
+			//				return false;
+			//			}
 		}
 		return true;
 	}
@@ -69,7 +81,7 @@ public class KeyReference implements ElementKey {
 	}
 
 	public int length() {
-		return end - start;
+		return length;// end - start;
 	}
 
 	@Override
@@ -79,7 +91,8 @@ public class KeyReference implements ElementKey {
 
 	@Override
 	public String toString() {
-		return new StringBuilder(buffer.subSequence(start, end)).toString();
+		return buffer.getSourceFromPosition(start).asCharSequence(length).toString();
+		//return buffer.asCharSequence(length).toString();//new StringBuilder(buffer.subSequence(start, start+length)).toString();
 		//return String.valueOf(buffer, start, length());
 	}
 }

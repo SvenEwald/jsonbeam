@@ -20,8 +20,6 @@ package org.jsonbeam.index.model.values;
 
 import org.jsonbeam.index.model.Reference;
 
-
-
 public class LiteralReference implements Reference {
 
 	private final String value;
@@ -31,12 +29,12 @@ public class LiteralReference implements Reference {
 	}
 
 	@Override
-	public String apply(final CharSequence array) {
+	public String apply() {
 		return value;
 	}
 
 	@Override
-	public String toString() {		
+	public String toString() {
 		return value;
 	}
 }
