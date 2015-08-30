@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import org.jsonbeam.io.FileCharacterSource;
+import org.jsonbeam.intern.io.FileCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

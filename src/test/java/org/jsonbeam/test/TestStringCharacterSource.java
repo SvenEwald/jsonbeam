@@ -18,13 +18,14 @@
  */
 package org.jsonbeam.test;
 
-import org.jsonbeam.io.CharacterSource;
-import org.jsonbeam.io.StringCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.jsonbeam.intern.io.CharacterSource;
+import org.jsonbeam.intern.io.StringCharacterSource;
 
 /**
  * @author Sven

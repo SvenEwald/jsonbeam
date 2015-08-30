@@ -20,7 +20,7 @@ package org.jsonbeam.test.examples;
 
 import java.util.List;
 
-import org.jsonbeam.jsonprojector.annotations.JBRead;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.test.utils.JBExpect;
 
 public interface Example1 {

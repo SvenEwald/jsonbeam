@@ -23,8 +23,8 @@ import java.util.stream.Stream;
 
 import java.nio.charset.StandardCharsets;
 
-import org.jsonbeam.JBProjector;
-import org.jsonbeam.jsonprojector.annotations.JBRead;
+import org.jsonbeam.JsonProjector;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Ignore;
 
@@ -47,7 +47,7 @@ public class TestGithubQuery extends TutorialTestCase {
 	@Ignore
 	public void testGithubQuery() {
 		String url = "https://api.github.com/search/repositories?q=json";
-		Result result = new JBProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Result.class);
+		Result result = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Result.class);
 		//Result result = new JBProjector().onJSONString(Testdata.RESULT).createProjection(Result.class);
 
 		System.out.println(result.getTotalCount());

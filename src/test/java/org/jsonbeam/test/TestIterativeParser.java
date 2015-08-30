@@ -20,13 +20,13 @@ package org.jsonbeam.test;
 
 import java.util.Scanner;
 
-import org.jsonbeam.index.JBQueries;
-import org.jsonbeam.index.model.IndexReference;
-import org.jsonbeam.io.CharacterSource;
-import org.jsonbeam.io.StringCharacterSource;
-import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
-import org.jsonbeam.jsonprojector.parser.JSONParser;
-import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
+import org.jsonbeam.intern.index.JBQueries;
+import org.jsonbeam.intern.index.model.IndexReference;
+import org.jsonbeam.intern.io.CharacterSource;
+import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.parser.IterativeJSONParser;
+import org.jsonbeam.intern.parser.JSONParser;
+import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.examples.ActionLabel;
 import org.junit.Test;
 
@@ -47,21 +47,21 @@ public class TestIterativeParser {
 	@Test
 	public void testBCProjector() {
 		CharacterSource source = new StringCharacterSource(json);
-		ActionLabel actionLabel = new BCJSONProjector().projectCharacterSource(source, ActionLabel.class);
+		ActionLabel actionLabel = new JBProjector().projectCharacterSource(source, ActionLabel.class);
 		assertEquals("SVG Viewer", actionLabel.getHeader());
 	}
 
 	@Test
 	public void testBCProjectorMulti() {
 		CharacterSource source = new StringCharacterSource(json);
-		ActionLabel actionLabel = new BCJSONProjector().projectCharacterSource(source, ActionLabel.class);
+		ActionLabel actionLabel = new JBProjector().projectCharacterSource(source, ActionLabel.class);
 		assertEquals(18, actionLabel.getAllIds().size());
 	}
 
 	@Test
 	public void testBCProjectorProjection() {
 		CharacterSource source = new StringCharacterSource(json);
-		ActionLabel actionLabel = new BCJSONProjector().projectCharacterSource(source, ActionLabel.class);
+		ActionLabel actionLabel = new JBProjector().projectCharacterSource(source, ActionLabel.class);
 		//assertNotNull(actionLabel.getFirstItem());
 		assertEquals("Open", actionLabel.getFirstItem().getId());
 	}

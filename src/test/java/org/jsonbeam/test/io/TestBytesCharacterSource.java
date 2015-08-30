@@ -23,7 +23,7 @@ import java.util.stream.IntStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.jsonbeam.io.BytesCharacterSource;
+import org.jsonbeam.intern.io.BytesCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

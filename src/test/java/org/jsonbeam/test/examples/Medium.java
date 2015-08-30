@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jsonbeam.jsonprojector.annotations.JBRead;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.test.utils.JBExpect;
 
 public interface Medium {

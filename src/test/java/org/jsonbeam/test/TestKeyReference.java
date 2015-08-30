@@ -18,9 +18,9 @@
  */
 package org.jsonbeam.test;
 
-import org.jsonbeam.index.keys.ArrayIndexKey;
-import org.jsonbeam.index.keys.KeyReference;
-import org.jsonbeam.io.StringCharacterSource;
+import org.jsonbeam.intern.index.keys.ArrayIndexKey;
+import org.jsonbeam.intern.index.keys.KeyReference;
+import org.jsonbeam.intern.io.StringCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

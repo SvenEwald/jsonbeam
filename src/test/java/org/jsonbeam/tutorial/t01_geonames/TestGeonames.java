@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 
 import java.nio.charset.StandardCharsets;
 
-import org.jsonbeam.JBProjector;
-import org.jsonbeam.jsonprojector.annotations.JBRead;
+import org.jsonbeam.JsonProjector;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ public class TestGeonames extends TutorialTestCase {
 	@Test
 	public void testCities() {
 		String url = "http://api.geonames.org/citiesJSON?formatted=true&north=44.1&south=-9.9&east=-22.4&west=55.2&lang=de&username=demo&style=full";
-		Geonames geonames = new JBProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Geonames.class);
+		Geonames geonames = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Geonames.class);
 		geonames.getCities().map(City::getName).forEach(System.out::println);
 	}
 }

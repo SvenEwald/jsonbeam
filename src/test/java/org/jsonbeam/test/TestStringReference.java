@@ -18,8 +18,8 @@
  */
 package org.jsonbeam.test;
 
-import org.jsonbeam.index.model.values.StringValueReference;
-import org.jsonbeam.io.StringCharacterSource;
+import org.jsonbeam.intern.index.model.values.StringValueReference;
+import org.jsonbeam.intern.io.StringCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

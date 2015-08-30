@@ -42,10 +42,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.net.URL;
 
-import org.jsonbeam.io.CharacterSource;
-import org.jsonbeam.io.CharsCharacterSource;
-import org.jsonbeam.io.StringCharacterSource;
-import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
+import org.jsonbeam.intern.io.CharacterSource;
+import org.jsonbeam.intern.io.CharsCharacterSource;
+import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.utils.JBExpect;
 import org.junit.Assert;
 import org.junit.Test;
@@ -164,7 +164,7 @@ public class TestProjectionRegression {
 	private void runParseJson(CharacterSource source) throws Throwable {
 		long testStart = System.currentTimeMillis();
 		//CharacterSource source = new StringCharacterSource(json);
-		Object createProjection = new BCJSONProjector().projectCharacterSource(source, projectionInterface);
+		Object createProjection = new JBProjector().projectCharacterSource(source, projectionInterface);
 		long projectionCreated = System.currentTimeMillis();
 
 		Function<JBExpect, Object> accessor = getAccessorForMethod(method);

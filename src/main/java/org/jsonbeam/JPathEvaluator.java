@@ -17,6 +17,10 @@ package org.jsonbeam;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.stream.Stream;
 
 /**
@@ -29,21 +33,36 @@ public interface JPathEvaluator {
 	 *
 	 * @return true when the selected value equals (ignoring case) 'true'
 	 */
-	boolean asBoolean();
+	Optional<Boolean> asBoolean();
 
 	/**
 	 * Evaluates the JPath as a int value. This method is just a shortcut for as(Integer.TYPE);
 	 *
 	 * @return int value of evaluation result.
 	 */
-	int asInt();
+	OptionalInt asInt();
 
+	
+	/**
+	 * Evaluates the JPath as a long value. This method is just a shortcut for as(Integer.TYPE);
+	 *
+	 * @return OptionalLong value of evaluation result.
+	 */
+	OptionalLong asLong();
+	
+	/**
+	 * Evaluates the JPath as a double value. This method is just a shortcut for as(Integer.TYPE);
+	 *
+	 * @return OptionalDouble value of evaluation result.
+	 */
+	OptionalDouble asDouble();
+	
 	/**
 	 * Evaluates the JPath as a String value. This method is just a shortcut for as(String.class);
 	 *
 	 * @return String value of evaluation result.
 	 */
-	String asString();
+	Optional<String> asString();
 
 	/**
 	 * Evaluates the JPath as a Date value. This method is just a shortcut for as(Date.class); You probably want to specify '
@@ -61,7 +80,7 @@ public interface JPathEvaluator {
 	 *            constructor or a String factory method
 	 * @return a value of return type that reflects the evaluation result.
 	 */
-	<T> T as(Class<T> returnType);
+	<T> Optional<T> as(Class<T> returnType);
 
 	/**
 	 * Evaluate the JPath as an array of the given type.
@@ -83,6 +102,11 @@ public interface JPathEvaluator {
 	 */
 	<T> List<T> asListOf(Class<T> componentType);
 
+	/**
+	 * Evaluate the JPath as Stream of the given type.
+	 * @param componentType
+	 * @return Stream
+	 */
 	<T> Stream<T> asStreamOf(Class<T> componentType);
-
+	
 }

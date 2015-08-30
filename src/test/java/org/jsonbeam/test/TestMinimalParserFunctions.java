@@ -18,11 +18,11 @@
  */
 package org.jsonbeam.test;
 
-import org.jsonbeam.index.JBQueries;
-import org.jsonbeam.index.JBResultCollector;
-import org.jsonbeam.io.StringCharacterSource;
-import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
-import org.jsonbeam.jsonprojector.parser.JSONParser;
+import org.jsonbeam.intern.index.JBQueries;
+import org.jsonbeam.intern.index.JBResultCollector;
+import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.parser.IterativeJSONParser;
+import org.jsonbeam.intern.parser.JSONParser;
 import org.junit.Test;
 
 /**

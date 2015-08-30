@@ -22,7 +22,7 @@ import java.util.Random;
 
 import java.io.ByteArrayInputStream;
 
-import org.jsonbeam.utils.IOHelper;
+import org.jsonbeam.intern.utils.IOHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

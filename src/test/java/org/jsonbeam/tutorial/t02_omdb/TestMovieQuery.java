@@ -20,8 +20,8 @@ package org.jsonbeam.tutorial.t02_omdb;
 
 import java.nio.charset.StandardCharsets;
 
-import org.jsonbeam.JBProjector;
-import org.jsonbeam.jsonprojector.annotations.JBRead;
+import org.jsonbeam.JsonProjector;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class TestMovieQuery extends TutorialTestCase {
 	public void testMovieQuery() {
 		String url = "http://www.omdbapi.com/?t=Interstellar";
 
-		Movie movie = new JBProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Movie.class);
+		Movie movie = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Movie.class);
 
 		System.out.println(movie.getTitle() + "(" + movie.getYear() + ")");
 		System.out.println(movie.getDirector());
