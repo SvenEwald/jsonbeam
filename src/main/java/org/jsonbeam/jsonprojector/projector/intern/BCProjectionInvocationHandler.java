@@ -19,16 +19,18 @@
 package org.jsonbeam.jsonprojector.projector.intern;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Array;
@@ -55,7 +57,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		Lookup newLookupInstance = (Lookup) constructor.newInstance(m.getDeclaringClass());
 		return newLookupInstance.in(m.getDeclaringClass()).unreflectSpecial(m, m.getDeclaringClass()).bindTo(p).invokeWithArguments(a);
 	};
-	private final static Set<Class<?>> SUPPORTED_GENERIC_TYPES = new HashSet<>(Arrays.asList(List.class, Optional.class, Stream.class, Set.class, Iterable.class));
+	private final static Set<Class<?>> SUPPORTED_GENERIC_TYPES = new HashSet<>(Arrays.asList(List.class, Optional.class, Stream.class, Set.class, Iterable.class,Collection.class));
 	private final Map<Class<?>, Function<Stream<Reference>, Stream<?>>> TYPE_CONVERTERS = new HashMap<>();
 	private final Map<Method, InvocationHandler> handlers = new HashMap<>();
 	private final JBResultProvider queries;
@@ -86,7 +88,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		}
 		private final static Map<Class<?>, Function<Reference, Object>> PRIMITIVE_CONVERTERS = new HashMap<>();
 		static {
-			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (r) -> Boolean.valueOf(Reference.TRUE == r));
+			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (r) -> Reference.TRUE == r);
 			PRIMITIVE_CONVERTERS.put(Byte.TYPE, (r) -> Byte.valueOf(r.apply()));
 			PRIMITIVE_CONVERTERS.put(Short.TYPE, (r) -> Short.valueOf(r.apply()));
 			PRIMITIVE_CONVERTERS.put(Integer.TYPE, (r) -> Integer.valueOf(r.apply()));
@@ -94,6 +96,52 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 			PRIMITIVE_CONVERTERS.put(Float.TYPE, (r) -> Float.valueOf(r.apply()));
 			PRIMITIVE_CONVERTERS.put(Double.TYPE, (r) -> Double.valueOf(r.apply()));
 		}
+
+		private final static Map<Class<?>, BiConsumer<List<Reference>, Object>> PRIMITIVE_ARRAY_FILLER = new HashMap<>();
+		static {
+			PRIMITIVE_ARRAY_FILLER.put(Boolean.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((boolean[])o)[i++]=Reference.TRUE ==v;
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Byte.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((byte[])o)[i++]=Byte.valueOf(v.apply());
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Short.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((short[])o)[i++]=Short.valueOf(v.apply());
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Integer.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((int[])o)[i++]=Integer.valueOf(v.apply());
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Long.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((long[])o)[i++]=Long.valueOf(v.apply());
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Float.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((float[])o)[i++]=Float.valueOf(v.apply());
+				}
+			});
+			PRIMITIVE_ARRAY_FILLER.put(Double.TYPE, (l, o) -> {
+				int i=0;
+				for (Reference v:l) {
+					((double[])o)[i++]=Double.valueOf(v.apply());
+				}
+			});
+		}		
 	}
 
 	//	private final BiFunction<Class<?>, Reference, Object> RESULT2SUBPROJECTION;
@@ -118,7 +166,10 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 			return Stream::findFirst;
 		}
 		if (Iterable.class.equals(returnType)) {
-			return Stream::iterator;
+			return s -> s.collect(Collectors.toList());
+		}
+		if (Collection.class.equals(returnType)) {
+			return s->s.collect(Collectors.toList());
 		}
 		if (Set.class.equals(returnType)) {
 			return s -> s.collect(Collectors.toSet());
@@ -147,9 +198,14 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		List<Reference> results = queries.getResultsForPath(pathStack);
 		if (effectiveReturnType.isPrimitive()) {
 			if (rawReturnType.isArray()) {
-				if (results.isEmpty()) {
-					return (p, m, a) -> PrimitivesHolder.PRIMITIVE_ARRAY_DEFAULTS.get(effectiveReturnType);
-				}
+				return (p, m, a) -> {
+					if (results.isEmpty()) {
+						return PrimitivesHolder.PRIMITIVE_ARRAY_DEFAULTS.get(effectiveReturnType);
+					}
+					Object array = Array.newInstance(effectiveReturnType, results.size());
+					PrimitivesHolder.PRIMITIVE_ARRAY_FILLER.get(effectiveReturnType).accept(results, array);
+					return array;
+				};
 			}
 			return (p, m, a) -> results.isEmpty() ? PrimitivesHolder.PRIMITIVE_DEFAULTS.get(effectiveReturnType) : PrimitivesHolder.PRIMITIVE_CONVERTERS.get(effectiveReturnType).apply(results.get(0));
 		}

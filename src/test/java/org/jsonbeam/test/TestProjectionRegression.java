@@ -43,6 +43,7 @@ import java.lang.reflect.ParameterizedType;
 import java.net.URL;
 
 import org.jsonbeam.io.CharacterSource;
+import org.jsonbeam.io.CharsCharacterSource;
 import org.jsonbeam.io.StringCharacterSource;
 import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
 import org.jsonbeam.test.utils.JBExpect;
@@ -139,7 +140,7 @@ public class TestProjectionRegression {
 	public TestProjectionRegression(final String name, final String methodName, final Class<?> projectionInterface, final Method method) throws Exception {
 		this.json = Arrays.stream(projectionInterface.getDeclaredFields()).filter(f -> "JSON".equals(f.getName())).map(TestProjectionRegression::accessField).findAny().orElseGet(() -> {
 			try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(EXAMPLE_PACKAGE + "/" + name + ".json")) {
-				return new Scanner(is).useDelimiter("\\A").next();
+				return new Scanner(is,"UTF-8").useDelimiter("\\A").next();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -150,8 +151,19 @@ public class TestProjectionRegression {
 
 	@Test
 	public void testParseJsonString() throws Throwable {
-		long testStart = System.currentTimeMillis();
 		CharacterSource source = new StringCharacterSource(json);
+		runParseJson(source);
+	}
+	
+	@Test
+	public void testParseJsonChars() throws Throwable {
+		CharacterSource source = new CharsCharacterSource(json.toCharArray());
+		runParseJson(source);
+	}
+	
+	private void runParseJson(CharacterSource source) throws Throwable {
+		long testStart = System.currentTimeMillis();
+		//CharacterSource source = new StringCharacterSource(json);
 		Object createProjection = new BCJSONProjector().projectCharacterSource(source, projectionInterface);
 		long projectionCreated = System.currentTimeMillis();
 
@@ -179,6 +191,7 @@ public class TestProjectionRegression {
 			throw e;
 		}
 		String m = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
+		System.out.print(source.getClass().getSimpleName()+"\t");
 		System.out.println("Create Projection:" + (projectionCreated - testStart) + "ms.  \tCall:" + (afterProjectionCall - beforeProjectionCall) + "ms\t" + m);
 	}
 
@@ -218,9 +231,11 @@ public class TestProjectionRegression {
 
 	private void assertMultiEquals(final Object expected, final Function<Object, Integer> elength, final BiFunction<Object, Integer, Object> egetter, final Object result, final Function<Object, Integer> rlength, final BiFunction<Object, Integer, Object> rGetter) {
 		Integer len = elength.apply(expected);
+		
 		Assert.assertEquals(len, rlength.apply(result));
 		for (int i = 0; i < len.intValue(); ++i) {
 			Assert.assertEquals(egetter.apply(expected, i), rGetter.apply(result, i));
 		}
+		
 	}
 }

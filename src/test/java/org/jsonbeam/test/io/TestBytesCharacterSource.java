@@ -36,10 +36,9 @@ public class TestBytesCharacterSource {
 	@Test
 	public void testTrivialUTF8Sequences() {
 		check("", StandardCharsets.UTF_8);
-		check("ß", StandardCharsets.UTF_8);
-		check("ß", StandardCharsets.UTF_16BE);
-		check("ß", StandardCharsets.UTF_16LE);
-		check("äöÄÖpüp", StandardCharsets.UTF_8);
+		check("ßäöÄÖpüp", StandardCharsets.UTF_8);
+		check("ßäöÄÖpüp", StandardCharsets.UTF_16BE);
+		check("ßäöÄÖpüp", StandardCharsets.UTF_16LE);
 	}
 
 	@Test

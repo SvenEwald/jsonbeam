@@ -25,6 +25,17 @@ public interface ElementKey {
 	static final ElementKey ROOT = new KeyReference("$");
 	static final ElementKey WILDCARD = new KeyReference("*");
 	static final ElementKey ONE_KEY = new KeyReference("?");
+	static final ElementKey INOBJECT = new ElementKey() {
+		@Override
+		public boolean matches(ElementKey otherKey) {
+			throw new IllegalStateException("This refernce should never be matched");
+		}
+
+		@Override
+		public String toString() {
+			return "<ILLEGAL OBJECT REF>";
+		}
+	};
 	static final ElementKey ALL_ARRAY_CHILDREN = new ElementKey() {
 
 		@Override
@@ -37,6 +48,7 @@ public interface ElementKey {
 			return "[*]";
 		}
 	};
+	
 
 	default String apply(CharSequence charArray) {
 		return toString();

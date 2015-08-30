@@ -18,6 +18,7 @@
  */
 package org.jsonbeam.test.io;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,11 +39,13 @@ public class TestFileCharacterSource {
 	public void testUTF8FileReading() throws IOException {
 		File file = new File("src/test/java/org/jsonbeam/test/examples/ActionLabel.json");
 		FileCharacterSource source = new FileCharacterSource(file, StandardCharsets.UTF_8);
-		String orig = new Scanner(file, "UTF-8").useDelimiter("\\A").next();
+		try (Closeable closeme=source.ioHandle();Scanner s=new Scanner(file, "UTF-8")) {
+		String orig = s.useDelimiter("\\A").next();
 		StringBuilder builder = new StringBuilder();
 		while (source.hasNext()) {
 			builder.append(source.getNext());
 		}
 		assertEquals(orig,builder.toString());
+		}
 	}
 }

@@ -19,14 +19,13 @@
 package org.jsonbeam.index.keys;
 
 import org.jsonbeam.io.CharacterSource;
-import org.jsonbeam.io.StringCharacterSource;
 
 public class KeyReference implements ElementKey {
 	final int hash;
-	final int start;
-	//	final int end;
+	int start;
 	final int length;
-	final CharacterSource buffer;
+	CharacterSource buffer;
+	char[] value;
 
 	public KeyReference(final int start, final int length, final int hash, final CharacterSource buffer) {
 		this.start = start;
@@ -39,40 +38,61 @@ public class KeyReference implements ElementKey {
 		this.start = 0;
 		this.length = string.length();
 		this.hash = string.hashCode();
-		this.buffer = new StringCharacterSource(string);
+		//this.buffer = new StringCharacterSource(string);
+		this.buffer = null;
+		this.value = string.toCharArray();
 	}
 
 	@Override
 	public boolean equals(final Object o) {
+		if (this == o) { //FIXME optimize order, move value replacement to match method
+			return true;
+		}
+		
 		if (o.hashCode() != hash) {
 			return false;
-		}
-
-		if (this == o) {
-			return true;
 		}
 
 		if (!(o instanceof KeyReference)) {
 			return false;
 		}
+
 		KeyReference other = (KeyReference) o;
 		if (other.length() != length()) {
 			return false;
 		}
-		CharacterSource ob = other.buffer;
-		int a = start;
-		int b = other.start;
-		CharacterSource asource = buffer.getSourceFromPosition(start);
-		CharacterSource bsource = other.buffer.getSourceFromPosition(other.start);
-		for (int i = 0; i < length(); i++) {
-			if (asource.getNext() != bsource.getNext()) {
+		if (this.value == null) {
+			buffer.setCharsBuffer(this);
+		}
+		if (other.value == null) {
+			other.buffer.setCharsBuffer(other);
+		}
+		if ((other.value == this.value) && (other.start == this.start)) {
+			return true;
+		}
+		int l = length;
+		int a = this.start, b = other.start;
+		char[] ac = this.value, bc = other.value;
+		while (l-- > 0) {
+			if (ac[a++] != bc[b++]) {
 				return false;
 			}
-			//			if (ob.charAt(b++) != buffer.charAt(a++)) {
-			//				return false;
-			//			}
 		}
+		other.value = this.value;
+		other.start = this.start;
 		return true;
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public String toString() {
+		if (value != null) {
+			return new String(value);
+		}
+		buffer.setCharsBuffer(this);
+		return new String(this.value);
 	}
 
 	@Override
@@ -81,7 +101,7 @@ public class KeyReference implements ElementKey {
 	}
 
 	public int length() {
-		return length;// end - start;
+		return length;
 	}
 
 	@Override
@@ -89,10 +109,20 @@ public class KeyReference implements ElementKey {
 		return equals(otherKey);
 	}
 
-	@Override
-	public String toString() {
-		return buffer.getSourceFromPosition(start).asCharSequence(length).toString();
-		//return buffer.asCharSequence(length).toString();//new StringBuilder(buffer.subSequence(start, start+length)).toString();
-		//return String.valueOf(buffer, start, length());
+	/**
+	 * @return
+	 */
+	public int getStart() {
+		return start;
 	}
+
+	/**
+	 * @param chars
+	 */
+	public void setChars(char[] chars, int start) {
+		this.value = chars;
+		this.start = start;
+		this.buffer = null;
+	}
+
 }

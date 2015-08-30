@@ -37,7 +37,7 @@ import org.jsonbeam.io.CharacterSource;
 
 public class IterativeJSONParser extends JSONParser {
 
-	public IterativeJSONParser(final CharacterSource json, final JBResultCollector resultCollector) {
+	 IterativeJSONParser(final CharacterSource json, final JBResultCollector resultCollector) {
 		super(json, resultCollector);
 	}
 
@@ -59,7 +59,7 @@ public class IterativeJSONParser extends JSONParser {
 		throw new ParseErrorException(json.getPosition(), "{[", currentChar);
 	}
 
-	public IndexReference createIndex(ElementKey currentKey, final Deque<Reference> currentRef) {
+	protected IndexReference createIndex(ElementKey currentKey, final Deque<Reference> currentRef) {
 		assert resultCollector != null;
 		nextChar: while (json.hasNext()) {
 			char c = json.nextConsumingWhitespace();
@@ -134,7 +134,7 @@ public class IterativeJSONParser extends JSONParser {
 				// parseValue
 				if (currentRef.peek() instanceof ObjectReference) {
 					if (c == '"') {
-						currentKey = parseJSONKey(ch -> ch == '"');
+						currentKey = json.parseJSONKey();
 						expectMoreData();
 						c = json.nextConsumingWhitespace();//consumeColon();
 						if (c != ':') {
@@ -154,7 +154,7 @@ public class IterativeJSONParser extends JSONParser {
 				}
 				Reference valueRef;
 				if (c == '"') {
-					valueRef = parseJSONString(ch -> ch == '"');
+					valueRef = parseJSONString();
 					expectMoreData();
 					c = json.nextConsumingWhitespace();
 				}
@@ -178,23 +178,5 @@ public class IterativeJSONParser extends JSONParser {
 			}
 		}
 		throw new UnexpectedEOF(json.getPosition());
-	}
-
-	protected void foundObjectPath(final Deque<Reference> currentRef, final ElementKey currentKey, final Supplier<ObjectReference> objRef) {
-		Optional<JBSubQueries> subCol = resultCollector.foundObjectPath(objRef);
-		if (subCol.isPresent()) {
-			JBSubQueries subQueries = subCol.get();
-			IndexReference reference = new IterativeJSONParser(json, subQueries).createIndex(ElementKey.ROOT, currentRef);
-			reference.addSubCollector(subQueries);
-			ElementKey popPath = resultCollector.popPath();
-			//Reference objOrArray = currentRef.pop();
-			//						if (popPath instanceof ArrayIndexKey) {
-			//							currentKey = ((ArrayIndexKey)popPath).next();
-			//						}
-			//	objRef.addChild(currentKey, result.getRootReference());//FIXME: Behandlung für array elemente fehlt
-			//cursor = result.getEndPosition();
-
-			//consumeAfterValue(currentChar, currentKey);
-		}
 	}
 }

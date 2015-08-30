@@ -22,6 +22,7 @@ import org.jsonbeam.index.JBQueries;
 import org.jsonbeam.index.JBResultCollector;
 import org.jsonbeam.io.StringCharacterSource;
 import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
+import org.jsonbeam.jsonprojector.parser.JSONParser;
 import org.junit.Test;
 
 /**
@@ -43,7 +44,7 @@ public class TestMinimalParserFunctions {
 
 	private final static String JSON7 = "{\"a\":null, \"b\": true , \"c\": false }";
 
-	private final static String JSON8 = "{\"a\": [ { b: null } ] }";
+	private final static String JSON8 = "{\"a\": [ { b: null } ] }";
 
 	private final static String JSON9 = "[\"a\",null]";
 
@@ -51,55 +52,55 @@ public class TestMinimalParserFunctions {
 
 	@Test
 	public void testJSON1() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON1), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON1), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON2() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON2), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON2), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON3() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON3), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON3), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON4() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON4), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON4), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON5() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON5), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON5), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON6() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON6), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON6), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON7() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON7), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON7), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON8() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON8), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON8), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 
 	@Test
 	public void testJSON9() {
-		IterativeJSONParser parser = new IterativeJSONParser(new StringCharacterSource(JSON9), EMPTY_COLLECTOR);
+		JSONParser parser = JSONParser.fMethod.apply(new StringCharacterSource(JSON9), EMPTY_COLLECTOR);
 		parser.createIndex();
 	}
 }

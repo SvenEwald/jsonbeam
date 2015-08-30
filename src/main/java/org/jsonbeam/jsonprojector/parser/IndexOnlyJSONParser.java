@@ -18,6 +18,7 @@
  */
 package org.jsonbeam.jsonprojector.parser;
 
+import java.util.Deque;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -27,8 +28,10 @@ import org.jsonbeam.index.JBResultCollector;
 import org.jsonbeam.index.JBSubQueries;
 import org.jsonbeam.index.keys.ArrayIndexKey;
 import org.jsonbeam.index.keys.ElementKey;
+import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.index.model.ObjectReference;
 import org.jsonbeam.index.model.Reference;
+import org.jsonbeam.index.model.values.StringValueReference;
 import org.jsonbeam.io.CharacterSource;
 
 public class IndexOnlyJSONParser extends JSONParser {
@@ -37,22 +40,21 @@ public class IndexOnlyJSONParser extends JSONParser {
 		super(json, resultCollector);
 	}
 
-	public void createIndex() {
-		expectMoreData();
+	public IndexReference createIndex() {
 		currentChar = json.nextConsumingWhitespace();
 		expect(currentChar, "{[");
 		if (currentChar == '{') {
-			createIndex(ElementKey.ROOT);
-			return;
+			createIndex(ElementKey.ROOT, null);
+			return null;
 		}
 		else if (currentChar == '[') {
-			createIndex(new ArrayIndexKey(0));
-			return;
+			createIndex(new ArrayIndexKey(0), null);
+			return null;
 		}
 		throw new ParseErrorException(json.getPosition(), "{[", currentChar);
 	}
 
-	public void createIndex(ElementKey currentKey) {
+	public IndexReference createIndex(ElementKey currentKey, Deque<Reference> notUsed) {
 		assert resultCollector != null;
 		nextChar: while (json.hasNext()) {
 			char c = json.nextConsumingWhitespace();
@@ -60,7 +62,7 @@ public class IndexOnlyJSONParser extends JSONParser {
 				if (c == '{') { // begin of object
 					if (ElementKey.ROOT != currentKey) {
 						resultCollector.pushPath(currentKey);
-						foundObjectPath(currentKey, () -> new ObjectReference());
+						currentKey = foundObjectPath(null, currentKey, ObjectReference::new);
 						c = consumeAfterValue(currentKey);
 						continue sameChar;
 					}
@@ -68,7 +70,7 @@ public class IndexOnlyJSONParser extends JSONParser {
 				}
 				if (c == '}') { // end of object
 					if (resultCollector.isPathEmpty()) {
-						return;
+						return null;
 					}
 					currentKey = resultCollector.popPath();
 					c = consumeAfterValue(currentKey);
@@ -87,42 +89,89 @@ public class IndexOnlyJSONParser extends JSONParser {
 					continue nextChar;
 				}
 				if (c == ']') {
+					if (resultCollector.isPathEmpty()) {
+						return null;
+					}
 					currentKey = resultCollector.popPath();
 					c = consumeAfterValue(currentKey);
 					continue sameChar;
 				}
 				// parseValue
 				if (!(currentKey instanceof ArrayIndexKey)) {
-					//if (currentRef.peek() instanceof ObjectReference) {
 					if (c == '"') {
-						currentKey = parseJSONKey(ch -> ch == '"');
-						expectMoreData();
-						c = json.nextConsumingWhitespace();//consumeColon();
+						currentKey = json.parseJSONKey();
+						c = json.nextConsumingWhitespace();
 						if (c != ':') {
 							throw new ParseErrorException(json.getPosition(), ':', c);
 						}
 					}
 					else {
-						currentKey = parseUnquotedJSONKey(c);// = parseJSONKey(ch -> ch == ':');
-
+						currentKey = parseUnquotedJSONKey(c);
 					}
-					expectMoreData();
 					c = json.nextConsumingWhitespace();
 				}
 
-				if ((c == '{') || (c == '[')) {
+				if ((c == '[') || (c == '{')) {
+					continue sameChar;
+				}
+				if (!resultCollector.currentKeyMightBeInterresting(currentKey)) {
+					if (c == '"') {
+						json.skipToQuote();
+						c=json.nextConsumingWhitespace();
+					}
+					else {
+						long result = json.skipToStringEnd();
+						c = (char) (result & 0xffff);
+						if (c <= ' ') {
+							c = json.nextConsumingWhitespace();
+						}
+					}
+					if (',' == c) {
+						currentKey.next();
+						continue nextChar;
+					}
+					if (c <= ' ') {
+						c = json.nextConsumingWhitespace();
+					}
 					continue sameChar;
 				}
 				Reference valueRef;
-				if (c == '"') {
-					valueRef = parseJSONString(ch -> ch == '"');
-					expectMoreData();
+				switch (c) {
+				case '"':
+					valueRef = parseJSONString();
 					c = json.nextConsumingWhitespace();
+					break;
+				case 'n': {
+					int start = json.getPosition();
+					long result = json.findNull();
+					int length = (int) (result >> 16);
+					valueRef = length == -1 ? Reference.NULL : new StringValueReference(start, length + 1, json);
+					c = (char) (result & 0xffff);
 				}
-				else {
-					valueRef = parseUnquotedJSONString(c);
-					c = currentChar;
-
+					break;
+				case 't': {
+					int start = json.getPosition();
+					long result = json.findTrue();
+					int length = (int) (result >> 16);
+					valueRef = length == -1 ? Reference.TRUE : new StringValueReference(start, length + 1, json);
+					c = (char) (result & 0xffff);
+				}
+					break;
+				case 'f': {
+					int start = json.getPosition();
+					long result = json.findFalse();
+					int length = (int) (result >> 16);
+					valueRef = length == -1 ? Reference.FALSE : new StringValueReference(start, length + 1, json);
+					c = (char) (result & 0xffff);
+				}
+					break;
+				default: { //parse unquoted string
+					int start = json.getPosition();
+					long result = json.skipToStringEnd();
+					int length = (int) (result >> 16);
+					c = (char) (result & 0xffff);
+					valueRef = new StringValueReference(start, length + 1, json);
+				}
 				}
 				resultCollector.pushPath(currentKey);
 				resultCollector.foundValuePath(valueRef);
@@ -140,21 +189,4 @@ public class IndexOnlyJSONParser extends JSONParser {
 		throw new UnexpectedEOF(json.getPosition());
 	}
 
-	protected void foundObjectPath(final ElementKey currentKey, final Supplier<ObjectReference> objRef) {
-		Optional<JBSubQueries> subCol = resultCollector.foundObjectPath(objRef);
-		if (subCol.isPresent()) {
-			JBSubQueries subQueries = subCol.get();
-			new IndexOnlyJSONParser(json, subQueries).createIndex(ElementKey.ROOT);
-			//reference.addSubCollector(subQueries);
-			ElementKey popPath = resultCollector.popPath();
-			//Reference objOrArray = currentRef.pop();
-			//						if (popPath instanceof ArrayIndexKey) {
-			//							currentKey = ((ArrayIndexKey)popPath).next();
-			//						}
-			//	objRef.addChild(currentKey, result.getRootReference());//FIXME: Behandlung für array elemente fehlt
-			//cursor = result.getEndPosition();
-
-			//consumeAfterValue(currentChar, currentKey);
-		}
-	}
 }

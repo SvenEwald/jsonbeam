@@ -19,6 +19,7 @@
 package org.jsonbeam.jsonprojector.utils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -35,7 +36,7 @@ import org.jsonbeam.jsonprojector.annotations.JBRead;
 
 public enum  ProjectionInterfaceHelper {
 	;
-	private final static Set<Class<?>> VALID_PARAMETERIZED_RETURN_TYPES = new HashSet<>(Arrays.asList(Set.class, List.class, Stream.class, Optional.class));
+	private final static Set<Class<?>> VALID_PARAMETERIZED_RETURN_TYPES = new HashSet<>(Arrays.asList(Set.class, List.class, Stream.class, Optional.class,Iterable.class,Collection.class));
 
 	public static  Optional<RuntimeException> checkProjectionInterfaceType(final Class<?> projectionInterface) {
 		if ((projectionInterface == null) || (!projectionInterface.isInterface()) || ((projectionInterface.getModifiers() & Modifier.PUBLIC) != Modifier.PUBLIC)) {

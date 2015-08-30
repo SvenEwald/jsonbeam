@@ -18,7 +18,6 @@
  */
 package org.jsonbeam.index;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.jsonbeam.index.keys.ElementKey;
@@ -29,7 +28,7 @@ public interface JBResultCollector {
 
 	String currentPathAsString();
 
-	Optional<JBSubQueries> foundObjectPath(Supplier<ObjectReference> item);
+	JBSubQueries foundObjectPath(Supplier<ObjectReference> item);
 
 	//FIXME: split result collecting into object,array and value paths. Maybe literal paths.
 
@@ -41,6 +40,8 @@ public interface JBResultCollector {
 	 * @return A list of SubQueries to match on that path.
 	 */
 	void foundValuePath(Reference item);
+	
+	boolean currentKeyMightBeInterresting(ElementKey reference);
 
 	boolean isPathEmpty();
 

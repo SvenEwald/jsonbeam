@@ -40,9 +40,9 @@ public class JBSubQueries extends JBQueries {
 	}
 
 	@Override
-	public Optional<JBSubQueries> foundObjectPath(final Supplier<ObjectReference> item) {
-		parent.foundObjectPath(item); //Ignoring parent subqueries for now
-		return super.foundObjectPath(item);
+	public JBSubQueries foundObjectPath(final Supplier<ObjectReference> item) {
+		parent.foundObjectPath(item); 
+		return  super.foundObjectPath(item);
 	}
 
 	@Override
@@ -73,6 +73,12 @@ public class JBSubQueries extends JBQueries {
 		parent.pushPath(currentKey);
 		super.pushPath(currentKey);
 
+	}
+	
+	
+	@Override
+	public boolean currentKeyMightBeInterresting(ElementKey reference) {
+		return parent.currentKeyMightBeInterresting(reference) || super.currentKeyMightBeInterresting(reference);
 	}
 
 	//	@Override

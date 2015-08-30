@@ -30,6 +30,7 @@ import org.jsonbeam.evaluation.DefaultEvaluator;
 import org.jsonbeam.io.BytesCharacterSource;
 import org.jsonbeam.io.FileCharacterSource;
 import org.jsonbeam.io.StringCharacterSource;
+import org.jsonbeam.io.CharsCharacterSource;
 import org.jsonbeam.jsonprojector.annotations.JBDocURL;
 import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
 import org.jsonbeam.jsonprojector.projector.intern.CanEvaluateOrProject;
@@ -67,7 +68,6 @@ public class JBProjector {
 	 * @param charset
 	 * @return
 	 */
-
 	public ProjectionInput input(final Charset charset) {
 		return new ProjectionInput() {
 
@@ -119,5 +119,21 @@ public class JBProjector {
 
 	public CanEvaluateOrProject onJSONString(final CharSequence json) {
 		return new DefaultEvaluator(delegate, () -> new StringCharacterSource(json));
+	}
+	
+	public CanEvaluateOrProject onJSONChars(final char[] json) {
+		return new DefaultEvaluator(delegate, () -> new CharsCharacterSource(json));
+	}
+	
+	public CanEvaluateOrProject onJSONBytes(final byte[] json,final Charset charset) {
+		return new DefaultEvaluator(delegate, () -> new BytesCharacterSource(json,json.length,charset));
+	}
+
+	/**
+	 * Remove all cached reflection data.
+	 * Call this method if you are not going to create projections any more.
+	 */
+	public void dropAllCaches() {
+		BCJSONProjector.dropAllCaches();
 	}
 }

@@ -28,14 +28,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.jws.Oneway;
+
+import org.jsonbeam.index.keys.ArrayIndexKey;
 import org.jsonbeam.index.keys.ElementKey;
 import org.jsonbeam.index.keys.PathReferenceStack;
+import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.index.model.ObjectReference;
 import org.jsonbeam.index.model.Reference;
+import org.jsonbeam.jsonprojector.utils.DH;
 
 public class JBQueries implements JBResultCollector, JBResultProvider {
 
@@ -93,67 +99,83 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	}
 
 	@Override
-	public Optional<JBSubQueries> foundObjectPath(final Supplier<ObjectReference> item) {
+	public JBSubQueries foundObjectPath(final Supplier<ObjectReference> item) {
 		//System.out.println(DH.oid(this) + " found object path:" + currentPath + " direct hit:" + directHits.containsKey(currentPath));
 		if (currentPath.isEmpty()) {
-			return Optional.empty();
+			return null;
 		}
 
 		ElementKey lastElement = currentPath.tail();
-		//if (!elementsToQuery.contains(lastElement)) {
 		if ((!queryAllArrayElements) && (!elementsToQuery.contains(lastElement))) {
-			return Optional.empty();
+			return null;
 		}
-		//List<JBSubQueries> subCollectors = new ArrayList<>();
+
 		PathReferenceStack pathReferenceStack2 = directHits.get(currentPath);
-		Optional<JBSubQueries> subQueries = Optional.empty();
+		JBSubQueries subQueries = null;
+		ObjectReference objectReference = null;
 		if (pathReferenceStack2 != null) {
-			storeResult(pathReferenceStack2, item.get());
+			objectReference = item.get();
+			storeResult(pathReferenceStack2, objectReference);
 			Supplier<JBSubQueries> supplier = path2SubQueries.get(pathReferenceStack2);
 			if (supplier != null) {
-				subQueries = Optional.ofNullable(supplier.get());//pathReferenceStack2.getSubCollector();
+				subQueries = supplier.get();
 			}
 		}
-		Set<PathReferenceStack> patternsToMatch = patterns.get(lastElement);
+		Set<PathReferenceStack> patternsToMatch = patterns.get(lastElement);// FIXME, refactor logic
 		if (patternsToMatch == null) {
 			if (queryAllArrayElements) {
 				patternsToMatch = patterns.get(ElementKey.ALL_ARRAY_CHILDREN);
 				if (patternsToMatch == null) {
+					updateObjectRef(objectReference, subQueries);
 					return subQueries;
 				}
 			}
 			else {
+				updateObjectRef(objectReference, subQueries);
 				return subQueries;
 			}
 
-			//	return subQueries;
 		}
 		for (PathReferenceStack pattern : patternsToMatch) {
 			if (!pattern.matches(currentPath)) {
 				continue;
 			}
-			storeResult(pattern, item.get());
-			//if (pattern.getSubCollector().isPresent()) {
+			if (objectReference == null) {
+				objectReference = item.get();
+			}
+			storeResult(pattern, objectReference);
 			if (path2SubQueries.containsKey(pattern)) {//FIXME: this neeeeeds cleanup
-				JBSubQueries patternQueries = path2SubQueries.get(pattern).get();//pattern.getSubCollector().get();
-				if (!subQueries.isPresent()) {
-					subQueries = Optional.ofNullable(path2SubQueries.get(pattern).get());//pattern.getSubCollector();
+				JBSubQueries patternQueries = path2SubQueries.get(pattern).get();
+				if (subQueries == null) {
+					subQueries = patternQueries;
 				}
 				else {
-					subQueries = subQueries.map(q -> q.merge(patternQueries)); //FIXME: broken
+					subQueries = subQueries.merge(patternQueries);
 				}
 			}
 		}
+		updateObjectRef(objectReference, subQueries);
 		return subQueries;
+	}
+
+	/**
+	 * @param objectReference
+	 * @param subQueries
+	 */
+	private void updateObjectRef(ObjectReference objectReference, JBSubQueries subQueries) {
+		if ((objectReference == null) || (subQueries == null)) {
+			return;
+		}
+		objectReference.addSubCollector(subQueries);
 	}
 
 	@Override
 	public void foundValuePath(final Reference item) {
 		//System.out.println(DH.oid(this) + " found value  path:" + currentPath + " direct hit:" + directHits.containsKey(currentPath));
 		ElementKey lastElement = currentPath.tail();
-		if ((!queryAllArrayElements) && (!elementsToQuery.contains(lastElement))) {
-			return;
-		}
+//		if ((!queryAllArrayElements) && (!elementsToQuery.contains(lastElement))) {
+//			return;
+//		}
 		PathReferenceStack pathReferenceStack2 = directHits.get(currentPath);
 		//directHits.values().toArray()[2].equals(currentPath)
 		if (pathReferenceStack2 != null) {
@@ -180,6 +202,17 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	}
 
 	@Override
+	public boolean currentKeyMightBeInterresting(ElementKey reference) {
+		if (elementsToQuery.contains(reference)) {
+			return true;
+		}
+		if (queryAllArrayElements && (reference instanceof ArrayIndexKey)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	public List<Reference> getResultsForPath(final PathReferenceStack path) {
 		List<Reference> resultList = results.get(path);
 		return resultList == null ? Collections.emptyList() : resultList;
@@ -198,7 +231,8 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	@Override
 	public void pushPath(final ElementKey currentKey) {
 		Objects.requireNonNull(currentKey);
-		assert !"$".equals(currentKey.toString());
+		assert currentKey != ElementKey.INOBJECT;
+		assert currentKey != ElementKey.ROOT;
 		currentPath.push(currentKey);
 	}
 

@@ -18,34 +18,41 @@
  */
 package org.jsonbeam.jsonprojector.parser;
 
+import java.util.Deque;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.jsonbeam.exceptions.ParseErrorException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.index.JBResultCollector;
+import org.jsonbeam.index.JBSubQueries;
 import org.jsonbeam.index.keys.ElementKey;
 import org.jsonbeam.index.keys.KeyReference;
+import org.jsonbeam.index.model.IndexReference;
+import org.jsonbeam.index.model.ObjectReference;
 import org.jsonbeam.index.model.Reference;
 import org.jsonbeam.index.model.values.StringValueReference;
 import org.jsonbeam.io.CharacterSource;
 
 public abstract class JSONParser {
 
-	@FunctionalInterface
-	protected interface TokenEnder {
-		boolean isTokenEnd(char c);
-	}
+	final public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fModelParser=IterativeJSONParser::new;
+	final public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fIndexParser=IndexOnlyJSONParser::new;
+	
+	
+	public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fMethod=fIndexParser;
 
+	private final static char[] TRUE = new char[] { 't', 'r', 'u', 'e' };
+
+	private final static char[] FALS = new char[] { 'f', 'a', 'l', 's' };
+	private final static char[] NULL = new char[] { 'n', 'u', 'l', 'l' };
 	private static boolean isStringEnd(final char c) {
 		return (c <= ' ') || (c == ',') || (c == ']') || (c == '}');
 	}
-
 	protected final CharacterSource json;
 	protected final JBResultCollector resultCollector;
 	protected char currentChar;
-	private final static char[] TRUE = new char[] { 't', 'r', 'u', 'e' };
-	private final static char[] FALS = new char[] { 'f', 'a', 'l', 's' };
-	private final static char[] NULL = new char[] { 'n', 'u', 'l', 'l' };
 
 	protected JSONParser(final CharacterSource json, final JBResultCollector resultCollector) {
 		Objects.requireNonNull(json);
@@ -54,45 +61,83 @@ public abstract class JSONParser {
 		this.resultCollector = (resultCollector);
 	}
 
+	protected char consumeAfterValue(final ElementKey currentKey) {
+		char c = json.nextConsumingWhitespace();
+		if (c == ',') {
+			currentKey.next();
+			c = json.getNext();
+			if (c <= ' ') {
+				c = json.nextConsumingWhitespace();
+			}
+			return c;
+		}
+		return c;
+
+	}
+
+	/**
+	 * @return
+	 */
+	public abstract IndexReference createIndex();
+
+	protected abstract IndexReference createIndex(ElementKey currentKey, final Deque<Reference> currentRef);
+
+	protected void expect(final char c, final String expectedChars) {
+		if (-1 == expectedChars.indexOf(c)) {
+			throw new ParseErrorException(json.getPosition(), c, expectedChars);//FIXME
+		}
+	}
+
 	protected void expectMoreData() {
 		if (!json.hasNext()) {
 			throw new UnexpectedEOF(json.getPosition());
 		}
 	}
 
-	//	protected char consumeWhitespace() {
-	//		int j = cursor;
-	//		int e = json.length();
-	//		char c;
-	//		while (j <= e) {
-	//			c = json.charAt(j);
-	//			if (c > ' ') {
-	//				cursor = j;
-	//				return c;
-	//			}
-	//
-	//			++j;
-	//		}
-	//		throw new UnexpectedEOF(cursor, json);
-	//	}
-
-	protected KeyReference parseJSONKey(final TokenEnder ender) {
-		int start = json.getPosition();
-		int hash = 0;
-		int length = 0;
-		while (json.hasNext()) {
-			char c = json.getNext();
-			//if (c == '"') {
-			if (ender.isTokenEnd(c)) {
-				//cursor = i + 1;
-				return new KeyReference(start + 1, length, hash, json);
-			}
-			++length;
-			hash = (31 * hash) + c;
+	protected ElementKey foundObjectPath(final Deque<Reference> currentRef,final ElementKey currentKey, final Supplier<ObjectReference> objRef) {
+		JBSubQueries subCol = resultCollector.foundObjectPath(objRef);
+		if (subCol!=null) {
+			 JSONParser.fMethod.apply(json, subCol).createIndex(ElementKey.ROOT,null);
+			ElementKey popPath = resultCollector.popPath();
+			return popPath;
 		}
-		throw new UnexpectedEOF(json.getPosition());
+		return ElementKey.INOBJECT;
 	}
 
+//	protected KeyReference parseJSONKey() {
+//		int start = json.getPosition();
+//		int hash = 0;
+//		int length = 0;
+//		while (json.hasNext()) {
+//			char c = json.getNext();
+//			if (c == '"') {
+//				return new KeyReference(start + 1, length, hash, json);
+//			}
+//			++length;
+//			hash = (31 * hash) + c;
+//		}
+//		throw new UnexpectedEOF(json.getPosition());
+//	}
+
+//	protected Reference parseJSONString() {
+//		int start = json.getPosition();
+//		int length = 0;
+//		while (json.hasNext()) {
+//			char c = json.getNext();
+//			if (c=='"') {
+//				return new StringValueReference(start + 1, length, json);
+//			}
+//			++length;
+//		}
+//		throw new UnexpectedEOF(json.getPosition());
+//	}
+	
+	protected Reference parseJSONString() {
+		int start=json.getPosition()+1;
+		int length=json.skipToQuote();
+		return new StringValueReference(start, length, json);
+	}
+	
 	protected KeyReference parseUnquotedJSONKey(final char firstChar) {
 		int start = json.getPosition();
 		int hash = firstChar;
@@ -106,19 +151,6 @@ public abstract class JSONParser {
 			}
 			++length;
 			hash = (31 * hash) + c;
-		}
-		throw new UnexpectedEOF(json.getPosition());
-	}
-
-	protected Reference parseJSONString(final TokenEnder ender) {
-		int start = json.getPosition();
-		int length = 0;
-		while (json.hasNext()) {
-			char c = json.getNext();
-			if (ender.isTokenEnd(c)) {
-				return new StringValueReference(start + 1, length, json);
-			}
-			++length;
 		}
 		throw new UnexpectedEOF(json.getPosition());
 	}
@@ -236,27 +268,4 @@ public abstract class JSONParser {
 		}
 		throw new UnexpectedEOF(json.getPosition());
 	}
-
-	protected char consumeAfterValue(final ElementKey currentKey) {
-		expectMoreData();
-		char c = json.nextConsumingWhitespace();
-		if (c == ',') {
-			currentKey.next();
-			c = json.getNext();
-			expectMoreData();
-			if (c <= ' ') {
-				c = json.nextConsumingWhitespace();
-			}
-			return c;
-		}
-		return c;
-
-	}
-
-	protected void expect(final char c, final String expectedChars) {
-		if (-1 == expectedChars.indexOf(c)) {
-			throw new ParseErrorException(json.getPosition(), c, expectedChars);//FIXME
-		}
-	}
-
 }

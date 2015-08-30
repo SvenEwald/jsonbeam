@@ -35,6 +35,7 @@ import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.index.model.Reference;
 import org.jsonbeam.io.CharacterSource;
 import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
+import org.jsonbeam.jsonprojector.parser.JSONParser;
 import org.jsonbeam.jsonprojector.projector.intern.BCProjectionInvocationHandler;
 import org.jsonbeam.jsonprojector.utils.ProjectionInterfaceHelper;
 
@@ -66,7 +67,7 @@ public class BCJSONProjector {
 		// missing types: date, BigDecimal, Number
 	}
 
-	private final Map<Class<?>, ProjectionType> knownProjectionTypes = new ConcurrentHashMap<>();
+	private final static Map<Class<?>, ProjectionType> knownProjectionTypes = new ConcurrentHashMap<>();
 
 	private JBQueries calculateQueriesForRootProjection(final ProjectionType projectionType) {
 		JBQueries rootQueries = new JBQueries();
@@ -133,7 +134,7 @@ public class BCJSONProjector {
 
 		//	assert rootQueries.dumpQueryGraph();
 
-		IterativeJSONParser jsonParser = new IterativeJSONParser(json, rootQueries);
+		JSONParser jsonParser =  JSONParser.fMethod.apply(json, rootQueries);
 		IndexReference rootReference = jsonParser.createIndex();
 		//assert rootQueries.dumpResults();
 		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(rootQueries, this, projectionType);
@@ -163,5 +164,12 @@ public class BCJSONProjector {
 
 	Function<Stream<Reference>, Stream<?>> calcGlobalTypeConverter(final Class<?> effectiveReturnType) {
 		throw new IllegalArgumentException("Type converter for class " + effectiveReturnType + " not implemented yet");
+	}
+
+	/**
+	 * 
+	 */
+	public static void dropAllCaches() {
+		knownProjectionTypes.clear();
 	}
 }

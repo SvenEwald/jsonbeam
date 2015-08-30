@@ -25,6 +25,7 @@ import org.jsonbeam.index.model.IndexReference;
 import org.jsonbeam.io.CharacterSource;
 import org.jsonbeam.io.StringCharacterSource;
 import org.jsonbeam.jsonprojector.parser.IterativeJSONParser;
+import org.jsonbeam.jsonprojector.parser.JSONParser;
 import org.jsonbeam.jsonprojector.projector.BCJSONProjector;
 import org.jsonbeam.test.examples.ActionLabel;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class TestIterativeParser {
 	public void testActionLabelParsingStaticPathResolverFast() {
 		JBQueries queries = new JBQueries();
 		CharacterSource source = new StringCharacterSource(json);
-		IndexReference reference = new IterativeJSONParser(source, queries).createIndex();
+		IndexReference reference = JSONParser.fModelParser.apply(source, queries).createIndex();
 		reference.dump(json);
 	}
 
