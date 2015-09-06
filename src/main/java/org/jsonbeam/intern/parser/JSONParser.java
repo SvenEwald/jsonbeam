@@ -65,7 +65,7 @@ public abstract class JSONParser {
 		char c = json.nextConsumingWhitespace();
 		if (c == ',') {
 			currentKey.next();
-			c = json.getNext();
+			c = json.next();
 			if (c <= ' ') {
 				c = json.nextConsumingWhitespace();
 			}
@@ -133,17 +133,17 @@ public abstract class JSONParser {
 //	}
 	
 	protected Reference parseJSONString() {
-		int start=json.getPosition()+1;
+		int start=json.getPosition();
 		int length=json.skipToQuote();
 		return new StringValueReference(start, length, json);
 	}
 	
 	protected KeyReference parseUnquotedJSONKey(final char firstChar) {
-		int start = json.getPosition();
+		int start = json.getPrevPosition();
 		int hash = firstChar;
 		int length = 1;
 		while (json.hasNext()) {
-			char c = json.getNext();
+			char c = json.next();
 			//if (c == '"') {
 			if (':' == c) { //FIXME: handle"\:"
 				//cursor = i + 1;
@@ -186,7 +186,7 @@ public abstract class JSONParser {
 				break;
 			}
 			expectMoreData();
-			c = json.getNext();
+			c = json.next();
 			++length;
 			++i;
 		} while (i < 4);
@@ -202,7 +202,7 @@ public abstract class JSONParser {
 				}
 			}
 			if ((tf == 0) && (c == 'e')) {
-				c = json.getNext();
+				c = json.next();
 				if (isStringEnd(c)) {
 					currentChar = c;
 					return Reference.FALSE;
@@ -212,7 +212,7 @@ public abstract class JSONParser {
 		}
 
 		while (json.hasNext()) {
-			c = json.getNext();
+			c = json.next();
 			++length;
 			if (isStringEnd(c)) {
 				currentChar = c;

@@ -19,11 +19,10 @@
 package org.jsonbeam.test.io;
 
 import java.util.stream.IntStream;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.jsonbeam.intern.io.BytesCharacterSource;
+import org.jsonbeam.intern.io.EncodedCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -83,8 +82,12 @@ public class TestBytesCharacterSource {
 		String string = new String(bytes, Charset.forName("cp1252"));
 		//string.chars().peek(System.out::print).map(i -> (char) i).mapToObj(c -> Integer.toHexString(c)).forEach(s -> System.out.println("0x" + s + ","));
 
-		BytesCharacterSource source = new BytesCharacterSource(bytes, bytes.length, Charset.forName("cp1252"));
-		String decodedString = source.asCharSequence(string.length()).toString();
+		EncodedCharacterSource source =  EncodedCharacterSource.handleBOM(bytes,0, bytes.length, Charset.forName("cp1252"));
+		StringBuilder stringBuilder = new StringBuilder(string.length());
+		for (int i=0;i<string.length();++i) {
+			stringBuilder.append(source.next());
+		}
+		String decodedString = stringBuilder.toString();//source.asCharSequence(string.length()).toString();
 		assertEquals(string, decodedString);
 	}
 
@@ -93,8 +96,12 @@ public class TestBytesCharacterSource {
 		//		for (byte b : bytes) {
 		//			System.out.println("0x" + Integer.toHexString(b));
 		//		}
-		BytesCharacterSource source = new BytesCharacterSource(bytes, bytes.length, charset);
-		String decodedString = source.asCharSequence(string.length()).toString();
+		EncodedCharacterSource source =  EncodedCharacterSource.handleBOM(bytes,0, bytes.length, charset);
+		StringBuilder stringBuilder = new StringBuilder(string.length());
+		for (int i=0;i<string.length();++i) {
+			stringBuilder.append(source.next());
+		}
+		String decodedString = stringBuilder.toString();//source.asCharSequence(string.length()).toString();
 		//		System.out.println(Integer.toHexString(string.charAt(0)) + Integer.toHexString(string.charAt(1)));
 		//		System.out.print(Integer.toBinaryString(string.charAt(0)));
 		//		System.out.print(" ");

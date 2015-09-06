@@ -19,6 +19,7 @@
 package org.jsonbeam.intern.io;
 
 import java.io.Closeable;
+import java.nio.charset.Charset;
 
 import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.index.keys.ElementKey;
@@ -31,14 +32,14 @@ public interface CharacterSource {
 
 	boolean hasNext();
 
-	char getNext();
+	char next();
 
 	int getPosition();
 
 	default char nextConsumingWhitespace() {
 		char c;
 		while (hasNext()) {
-			c = getNext();
+			c = next();
 			if (c > ' ') {
 				return c;
 			}
@@ -50,7 +51,7 @@ public interface CharacterSource {
 		char c;
 		int length=0;
 		while (hasNext()) {
-			c = getNext();
+			c = next();
 			if (c == '"') {
 				return length;
 			}
@@ -64,19 +65,6 @@ public interface CharacterSource {
 	 * @return
 	 */
 	CharacterSource getSourceFromPosition(int a);
-
-	/**
-	 * Convert this CharacterSource to a String
-	 * @param length
-	 * @return
-	 */
-	default CharSequence asCharSequence(int length){
-		final StringBuilder builder = new StringBuilder();
-		for (int i=0;i<length;++i) {
-			builder.append(getNext());
-		}
-		return builder;
-	}
 	
 	default Closeable ioHandle() {		
 		return ()->{};
@@ -87,9 +75,9 @@ public interface CharacterSource {
 		int hash = 0;
 		int length = 0;
 		while (hasNext()) {
-			char c = getNext();
+			char c = next();
 			if (c == '"') {
-				return new KeyReference(start + 1, length, hash, this);
+				return new KeyReference(start, length, hash, this);
 			}
 			++length;
 			hash = (31 * hash) + c;
@@ -104,7 +92,7 @@ public interface CharacterSource {
 		char c;
 		int length=0;
 		while (hasNext()) {
-			c = getNext();
+			c = next();
 			if  ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) {
 				long result=length;
 				return result<<16|c;
@@ -121,28 +109,28 @@ public interface CharacterSource {
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		char c=getNext();
+		char c=next();
 		if (c!='u') {
 			return skipToStringEnd()+(2<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='l') {
 			return skipToStringEnd()+(3<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='l') {
 			return skipToStringEnd()+(4<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if  ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) { 
 			return -1l<<16|c;
 				
@@ -157,28 +145,28 @@ public interface CharacterSource {
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		char c=getNext();
+		char c=next();
 		if (c!='r') {
 			return skipToStringEnd()+(2<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='u') {
 			return skipToStringEnd()+(3<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='e') {
 			return skipToStringEnd()+(4<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if  ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) { 
 			return -1l<<16|c;
 				
@@ -193,35 +181,35 @@ public interface CharacterSource {
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		char c=getNext();
+		char c=next();
 		if (c!='a') {
 			return skipToStringEnd()+(2<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='l') {
 			return skipToStringEnd()+(3<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='s') {
 			return skipToStringEnd()+(4<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if (c!='e') {
 			return skipToStringEnd()+(5<<16);
 		}
 		if (!hasNext()) {
 			throw new  UnexpectedEOF(getPosition());
 		}
-		c=getNext();
+		c=next();
 		if  ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) { 
 			return -1l<<16|c;
 				
@@ -235,10 +223,20 @@ public interface CharacterSource {
 		char[] chars=new char[length];
 		CharacterSource source = getSourceFromPosition(start);
 		for (int i=0;i<length;++i) {
-			chars[i]=source.getNext();
+			chars[i]=source.next();
 		}
 		key.setChars(chars,0);
 	}
+
+	/**
+	 * @return
+	 */
+	Charset getCharset();
+
+	/**
+	 * @return
+	 */
+	int getPrevPosition();
 
 //	/**
 //	 * @param start

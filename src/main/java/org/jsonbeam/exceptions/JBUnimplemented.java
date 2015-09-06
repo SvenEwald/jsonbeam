@@ -16,30 +16,17 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.test.io;
-
-import java.io.IOException;
-
-import org.junit.Test;
+package org.jsonbeam.exceptions;
 
 /**
  * @author Sven
  *
  */
-public class TestFileCharacterSource {
-	
-	@Test
-	public void testUTF8FileReading() throws IOException {
-		//FIXME: reactivate after refactoring
-//		File file = new File("src/test/java/org/jsonbeam/test/examples/ActionLabel.json");
-//		FileCharacterSource source = new FileCharacterSource(file, StandardCharsets.UTF_8);
-//		try (Closeable closeme=source.ioHandle();Scanner s=new Scanner(file, "UTF-8")) {
-//		String orig = s.useDelimiter("\\A").next();
-//		StringBuilder builder = new StringBuilder();
-//		while (source.hasNext()) {
-//			builder.append(source.next());
-//		}
-//		assertEquals(orig,builder.toString());
-//		}
+public class JBUnimplemented extends RuntimeException {
+
+	private static final long serialVersionUID = 1L;
+
+	public JBUnimplemented() {
+		super("This method is not implemented yet, but someday it will be!");
 	}
 }

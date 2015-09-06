@@ -78,8 +78,16 @@ public class KeyReference implements ElementKey {
 				return false;
 			}
 		}
-		other.value = this.value;
-		other.start = this.start;
+		if (other.value.length>this.value.length) {
+			other.value = this.value;
+			other.start = this.start;
+			return true;
+		}
+		if (this.value.length>other.value.length) {
+			this.value = other.value;
+			this.start = other.start;
+			return true;
+		} 
 		return true;
 	}
 
@@ -87,12 +95,12 @@ public class KeyReference implements ElementKey {
 	 * @return
 	 */
 	@Override
-	public String toString() {
-		if (value != null) {
-			return new String(value);
+	public String toString() {		
+		if (value == null) {
+			buffer.setCharsBuffer(this);
+			return toString();
 		}
-		buffer.setCharsBuffer(this);
-		return new String(this.value);
+		return new StringBuilder(length).append(value, start, length).toString();		
 	}
 
 	@Override

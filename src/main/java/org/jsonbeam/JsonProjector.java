@@ -28,15 +28,17 @@ import java.nio.charset.StandardCharsets;
 
 import org.jsonbeam.annotations.JBDocURL;
 import org.jsonbeam.intern.evaluation.DefaultEvaluator;
-import org.jsonbeam.intern.io.BytesCharacterSource;
+import org.jsonbeam.intern.io.EncodedCharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.FileCharacterSource;
+import org.jsonbeam.intern.io.FileCharacterSourceFactory;
 import org.jsonbeam.intern.io.StringCharacterSource;
-import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
+import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.utils.IOHelper;
 
 public class JsonProjector {
+
+	public static final Charset UTF_BOM = IOHelper.UTF_BOM;
 
 	public JsonProjector(final Flags... optionalFlags) {
 		this.delegate = new JBProjector(optionalFlags);
@@ -50,21 +52,22 @@ public class JsonProjector {
 		 * toString() might be used frequently by the IDE your debugging in.
 		 */
 		TO_STRING_RENDERS_JSON,
-		/**
-		 * Option to strip empty values from the result.
-		 */
-		OMIT_EMPTY_NODES,
-		/**
-		 * If a node is not present, handle it like it is empty.
-		 */
-		ABSENT_IS_EMPTY,
+//		/**
+//		 * Option to strip empty values from the result.
+//		 */
+//		OMIT_EMPTY_NODES,
+//		/**
+//		 * If a node is not present, handle it like it is empty.
+//		 */
+//		ABSENT_IS_EMPTY,
 
 	}
 
 	/**
-	 * Collection of methods used to read JSON data. Sorry, you must specify the {@link Charset} of your data. There is
-	 * deliberately no default character set. See {@link StandardCharsets} for convenient constants.
-	 *
+	 * Collection of methods used to read JSON data.<br> Sorry, you must specify the {@linkplain Charset} of your data. There is
+	 * deliberately no default character set. See {@linkplain StandardCharsets} for convenient constants.
+	 * If you know that your input is some UTF and contains a BOM, you may use {@linkplain UTF_BOM}.
+	 * 
 	 * @param charset
 	 * @return
 	 */
@@ -74,7 +77,7 @@ public class JsonProjector {
 			@Override
 			public CanEvaluateOrProject url(final URL url) {
 				return new DefaultEvaluator(delegate,//
-						() -> IOHelper.toBuffer(() -> url.openConnection().getInputStream(), (is, l) -> new BytesCharacterSource(is, l, charset)));
+						() -> IOHelper.toBuffer(() -> url.openConnection().getInputStream(), (is, l) ->  EncodedCharacterSource.handleBOM(is,0, l, charset)));
 			}
 
 			@Override
@@ -88,7 +91,7 @@ public class JsonProjector {
 
 			@Override
 			public CanEvaluateOrProject stream(final InputStream is) {
-				return new DefaultEvaluator(delegate, () -> IOHelper.toBuffer(is, (s, l) -> new BytesCharacterSource(s, l, charset)));
+				return new DefaultEvaluator(delegate, () -> IOHelper.toBuffer(is, (s, l) ->  EncodedCharacterSource.handleBOM(s, 0,l, charset)));
 			}
 
 			@Override
@@ -107,7 +110,7 @@ public class JsonProjector {
 
 			@Override
 			public CanEvaluateOrProject file(final File file) {
-				return new DefaultEvaluator(delegate, () -> new FileCharacterSource(file, charset));
+				return new DefaultEvaluator(delegate, () -> FileCharacterSourceFactory.sourceFor(file, charset));
 			}
 
 			@Override
@@ -120,18 +123,17 @@ public class JsonProjector {
 	public CanEvaluateOrProject onJSONString(final CharSequence json) {
 		return new DefaultEvaluator(delegate, () -> new StringCharacterSource(json));
 	}
-	
+
 	public CanEvaluateOrProject onJSONChars(final char[] json) {
-		return new DefaultEvaluator(delegate, () -> new CharsCharacterSource(json));
+		return new DefaultEvaluator(delegate, () -> new CharsCharacterSource(json,-1,json.length-1));
 	}
-	
-	public CanEvaluateOrProject onJSONBytes(final byte[] json,final Charset charset) {
-		return new DefaultEvaluator(delegate, () -> new BytesCharacterSource(json,json.length,charset));
+
+	public CanEvaluateOrProject onJSONBytes(final byte[] json, final Charset charset) {
+		return new DefaultEvaluator(delegate, () -> EncodedCharacterSource.handleBOM(json, 0,json.length, charset));
 	}
 
 	/**
-	 * Remove all cached reflection data.
-	 * Call this method if you are not going to create projections any more.
+	 * Remove all cached reflection data. Call this method if you are not going to create projections any more.
 	 */
 	public void dropAllCaches() {
 		JBProjector.dropAllCaches();

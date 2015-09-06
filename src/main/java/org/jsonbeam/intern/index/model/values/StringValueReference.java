@@ -38,7 +38,7 @@ public final class StringValueReference implements Reference {
 		StringBuilder builder = new StringBuilder();
 		CharacterSource source2 = source.getSourceFromPosition(start);
 		for (int i = 0; i < length; ++i) {
-			builder.append(source2.getNext());
+			builder.append(source2.next());
 		}
 		return builder.toString();//source.getSourceFromPosition(start).asCharSequence(length).toString();
 		//return new StringBuilder(source.getSequence(start, end)).toString();

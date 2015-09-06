@@ -23,26 +23,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jsonbeam.intern.index.keys.ElementKey;
+import org.jsonbeam.intern.utils.Pair;
 
 public class ObjectReference extends IndexReference {
-
-	private static class Pair<KK, VV> {
-		private final KK key;
-		private final VV value;
-
-		private Pair(final KK key, final VV value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public KK getKey() {
-			return key;
-		}
-
-		public VV getValue() {
-			return value;
-		}
-	}
 
 	//private final Map<Reference, Reference> children = new MyLazyValueMap<>(lazyChop)
 	private final List<Pair<ElementKey, Reference>> children = new ArrayList<>();
@@ -50,7 +33,7 @@ public class ObjectReference extends IndexReference {
 	public ObjectReference() {
 	}
 
-	@Override
+ 	@Override
 	public void addChild(final ElementKey keyRef, final Reference valueRef) {
 		this.children.add(new Pair<ElementKey, Reference>(keyRef, valueRef));
 	}
@@ -71,10 +54,10 @@ public class ObjectReference extends IndexReference {
 		//System.out.println(prefix + (isTail ? prefix.endsWith(" ") ? "└── " : "───" : "├── ") + value + " " + getClass().getSimpleName());
 
 		for (int i = 0; i < (children.size() - 1); i++) {
-			children.get(i).getValue().dump(json, prefix + (isTail ? "    " : "│   ") + children.get(i).key.apply(json) + ":", false);
+			children.get(i).getValue().dump(json, prefix + (isTail ? "    " : "│   ") + children.get(i).getKey().apply(json) + ":", false);
 		}
 		if (children.size() > 0) {
-			children.get(children.size() - 1).getValue().dump(json, prefix + (isTail ? "    " : "│   ") + children.get(children.size() - 1).key.apply(json) + ":", true);
+			children.get(children.size() - 1).getValue().dump(json, prefix + (isTail ? "    " : "│   ") + children.get(children.size() - 1).getKey().apply(json) + ":", true);
 		}
 	}
 

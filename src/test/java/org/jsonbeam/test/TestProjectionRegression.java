@@ -31,7 +31,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
@@ -157,7 +156,7 @@ public class TestProjectionRegression {
 	
 	@Test
 	public void testParseJsonChars() throws Throwable {
-		CharacterSource source = new CharsCharacterSource(json.toCharArray());
+		CharacterSource source = new CharsCharacterSource(json.toCharArray(),-1,json.length()-1);
 		runParseJson(source);
 	}
 	
@@ -206,6 +205,7 @@ public class TestProjectionRegression {
 		return accessor;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void ensureEquals(final Object expected, final Object result) {
 
 		if (result == null) {

@@ -18,9 +18,12 @@
  */
 package org.jsonbeam.intern.evaluation;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.jsonbeam.JPathEvaluator;
+import org.jsonbeam.exceptions.JBUnimplemented;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
@@ -40,19 +43,18 @@ public class DefaultEvaluator implements CanEvaluateOrProject {
 
 	@Override
 	public JPathEvaluator evalJPath(final String jpath) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new JBUnimplemented();
 	}
 	
 
 	@Override
 	public <T> T createProjection(final Class<T> type) {
 		CharacterSource source = docProvider.get();
-		try (AutoCloseable handle = source.ioHandle()) {
+		try (Closeable handle = source.ioHandle()) {
 			return projector.projectCharacterSource(source, type);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}
+		} 
 	}
 	
 }

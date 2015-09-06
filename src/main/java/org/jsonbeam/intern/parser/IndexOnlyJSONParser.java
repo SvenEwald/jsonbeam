@@ -142,7 +142,7 @@ public class IndexOnlyJSONParser extends JSONParser {
 					c = json.nextConsumingWhitespace();
 					break;
 				case 'n': {
-					int start = json.getPosition();
+					int start = json.getPrevPosition();
 					long result = json.findNull();
 					int length = (int) (result >> 16);
 					valueRef = length == -1 ? Reference.NULL : new StringValueReference(start, length + 1, json);
@@ -150,7 +150,7 @@ public class IndexOnlyJSONParser extends JSONParser {
 				}
 					break;
 				case 't': {
-					int start = json.getPosition();
+					int start = json.getPrevPosition();
 					long result = json.findTrue();
 					int length = (int) (result >> 16);
 					valueRef = length == -1 ? Reference.TRUE : new StringValueReference(start, length + 1, json);
@@ -158,7 +158,7 @@ public class IndexOnlyJSONParser extends JSONParser {
 				}
 					break;
 				case 'f': {
-					int start = json.getPosition();
+					int start = json.getPrevPosition();
 					long result = json.findFalse();
 					int length = (int) (result >> 16);
 					valueRef = length == -1 ? Reference.FALSE : new StringValueReference(start, length + 1, json);
@@ -166,11 +166,11 @@ public class IndexOnlyJSONParser extends JSONParser {
 				}
 					break;
 				default: { //parse unquoted string
-					int start = json.getPosition();
+					int start = json.getPrevPosition();
 					long result = json.skipToStringEnd();
 					int length = (int) (result >> 16);
 					c = (char) (result & 0xffff);
-					valueRef = new StringValueReference(start, length + 1, json);
+					valueRef = new StringValueReference(start, length+1, json);
 				}
 				}
 				resultCollector.pushPath(currentKey);
