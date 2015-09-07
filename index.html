@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Jsonbeam : Java JSON data projection library.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Jsonbeam</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/SvenEwald/jsonbeam">View on GitHub</a>
+
+          <h1 id="project_title">Jsonbeam</h1>
+          <h2 id="project_tagline">Java JSON data projection library.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/SvenEwald/jsonbeam/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/SvenEwald/jsonbeam/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="jsonbeam" class="anchor" href="#jsonbeam" aria-hidden="true"><span class="octicon octicon-link"></span></a>JSONBeam</h1>
+
+<p>Idea</p>
+
+<ul>
+<li>Provide access to JSON data via JSONPath like queries (like XMLBeam does)</li>
+<li>Speed up JSONPath evaluation by evaluating all queries at once during document parsing</li>
+<li>Avoid creation of DOM like structures, use indexes instead</li>
+</ul>
+
+<p>Current state: version 0.0.2</p>
+
+<ul>
+<li>Highly experimental</li>
+<li>I'm still evaluating different index data structures (tries &amp; hash based indexes)</li>
+<li>There are a lot of not yet implemented corner cases</li>
+<li>Type conversion is not implemented yet</li>
+</ul>
+
+<p>Design goals:</p>
+
+<p>JSON</p>
+
+<ul>
+<li>support deep data structures by using a nonrecursive parser</li>
+<li>small memory foodprint for large files by creating a compressed index instead of an object graph</li>
+<li>high performance by avoiding object allocation and buffer copies when possible</li>
+<li>support for compact json variants (nonquoted keys &amp; values)</li>
+</ul>
+
+<p>Data Projection</p>
+
+<ul>
+<li>read support by using a variant of JSONPath</li>
+<li>write support for deletes &amp; updates</li>
+<li>write support for JSON structures</li>
+</ul>
+
+<p>Read &amp; write operations</p>
+
+<ul>
+<li>try to minimise output changes to get a clean diff</li>
+</ul>
+
+<p>Java</p>
+
+<ul>
+<li>Java 8 and higher are supported</li>
+</ul>
+
+<p>Dual License</p>
+
+<ul>
+<li>GPL V3 for open source projects</li>
+<li>Comercial license available later (version 1.0.0 and higher)</li>
+<li>Backports for pre Java 8 available under comercial licence later (version 1.0.0 and higher)</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Jsonbeam maintained by <a href="https://github.com/SvenEwald">SvenEwald</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
