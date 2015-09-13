@@ -47,7 +47,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	private boolean queryAllArrayElements = false;
 	private final Map<PathReferenceStack, Supplier<JBSubQueries>> path2SubQueries = new HashMap<>();
 
-	public void addQuery(final PathReferenceStack query, final Supplier<JBSubQueries> subqueries) {
+	public JBQueries addQuery(final PathReferenceStack query, final Supplier<JBSubQueries> subqueries) {
 		if (subqueries != null) {
 			path2SubQueries.put(query, subqueries);
 		}
@@ -62,9 +62,10 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		}
 		if (!query.isPattern()) {
 			directHits.put(query, query);
-			return;
+			return this;
 		}
 		patterns.computeIfAbsent(lastElement, k -> new LinkedHashSet<>()).add(query);
+		return this;
 	}
 
 	@Override

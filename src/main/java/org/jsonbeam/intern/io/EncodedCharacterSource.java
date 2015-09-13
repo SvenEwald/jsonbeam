@@ -27,12 +27,11 @@ import java.util.Objects;
 
 import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.exceptions.JBUnsupportedCharser;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceASCII;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceCP1252;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceISO88591;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceUTF16BE;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceUTF16LE;
-import org.jsonbeam.intern.io.charsets.buffers.ByteArrayCharacterSourceUTF8;
+import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceCP1252;
+import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceISO88591;
+import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceUTF16BE;
+import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceUTF16LE;
+import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceUTF8;
 import org.jsonbeam.intern.utils.IOHelper;
 import org.jsonbeam.intern.utils.TriFunction;
 
@@ -41,20 +40,17 @@ import org.jsonbeam.intern.utils.TriFunction;
  */
 public abstract class EncodedCharacterSource extends JsonCharacterSource {
 
-
 	private Closeable closeable = ()->{};
-	
 	
 	static final Map<String,TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource>> FACTORIES=new HashMap<>();
 	static {
 		FACTORIES.put("ISO-8859-1", ByteArrayCharacterSourceISO88591::new );
-		FACTORIES.put("US-ASCII", ByteArrayCharacterSourceASCII::new );
+		FACTORIES.put("US-ASCII", ByteArrayCharacterSourceISO88591::new );
 		FACTORIES.put("UTF-8", ByteArrayCharacterSourceUTF8::new );
 		FACTORIES.put("UTF-16LE", ByteArrayCharacterSourceUTF16LE::new );
 		FACTORIES.put("UTF-16BE", ByteArrayCharacterSourceUTF16BE::new );
 		FACTORIES.put("windows-1252", ByteArrayCharacterSourceCP1252::new);
 	}
-	
 
 	public static EncodedCharacterSource handleBOM(byte[] buffer,final int offset, final int length, final Charset charset) {
 		Objects.requireNonNull(buffer);
@@ -73,14 +69,9 @@ public abstract class EncodedCharacterSource extends JsonCharacterSource {
 		}
 		return FACTORIES.computeIfAbsent(charset.name(),name->{throw new JBUnsupportedCharser(name);}).apply(buffer,offset-1, length-1);
 	}
-	
-	
 
-	protected EncodedCharacterSource(final int offset,final int length, final Charset charset) {
-		super(charset,offset,length);
-//		this.initValue=offset;
-//		this.cursor+=offset;
-//		max = length - 1;
+	protected EncodedCharacterSource(final int offset,final int length) {
+		super(offset,length);
 	}
 	
 
@@ -99,5 +90,4 @@ public abstract class EncodedCharacterSource extends JsonCharacterSource {
 		return closeable;
 	}
 
-	protected abstract int readNextByte();
 }

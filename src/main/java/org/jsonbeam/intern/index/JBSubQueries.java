@@ -18,7 +18,6 @@
  */
 package org.jsonbeam.intern.index;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.jsonbeam.intern.index.keys.ElementKey;

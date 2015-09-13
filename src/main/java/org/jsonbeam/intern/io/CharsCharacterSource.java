@@ -28,10 +28,9 @@ public class CharsCharacterSource extends JsonCharacterSource {
 	final private char[] buffer;
 
 	public CharsCharacterSource(char[] json,int pos,int max) {
-		super(null,pos,max);
+		super(pos,max);
 		this.buffer = json;
 		assert max<json.length;
-		//max = offset+length - 1;
 	}
 
 //	public long findNull() {

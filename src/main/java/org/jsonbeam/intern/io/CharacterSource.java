@@ -19,10 +19,8 @@
 package org.jsonbeam.intern.io;
 
 import java.io.Closeable;
-import java.nio.charset.Charset;
 
 import org.jsonbeam.exceptions.UnexpectedEOF;
-import org.jsonbeam.intern.index.keys.ElementKey;
 import org.jsonbeam.intern.index.keys.KeyReference;
 
 /**
@@ -231,25 +229,6 @@ public interface CharacterSource {
 	/**
 	 * @return
 	 */
-	Charset getCharset();
-
-	/**
-	 * @return
-	 */
 	int getPrevPosition();
 
-//	/**
-//	 * @param start
-//	 * @param length
-//	 * @return
-//	 */
-//	default char[] getCharsFrom(int start, int length) {
-//		char[] chars=new char[length];
-//		CharacterSource source = getSourceFromPosition(start);
-//		for (int i=0;i<length;++i) {
-//			chars[i]=source.getNext();
-//		}
-//		return chars;
-//	}
-	
 }

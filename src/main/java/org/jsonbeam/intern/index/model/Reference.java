@@ -18,13 +18,12 @@
  */
 package org.jsonbeam.intern.index.model;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 
 import org.jsonbeam.intern.index.keys.ElementKey;
 import org.jsonbeam.intern.index.model.values.LiteralReference;
-
-import java.nio.charset.Charset;
 
 public interface Reference {
 

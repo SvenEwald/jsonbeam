@@ -37,7 +37,7 @@ import org.jsonbeam.intern.io.CharacterSource;
 
 public abstract class JSONParser {
 
-	final public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fModelParser=IterativeJSONParser::new;
+	//final public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fModelParser=IterativeJSONParser::new;
 	final public static BiFunction<CharacterSource, JBResultCollector, JSONParser> fIndexParser=IndexOnlyJSONParser::new;
 	
 	
@@ -95,6 +95,9 @@ public abstract class JSONParser {
 	}
 
 	protected ElementKey foundObjectPath(final Deque<Reference> currentRef,final ElementKey currentKey, final Supplier<ObjectReference> objRef) {
+//		if (!resultCollector.currentKeyMightBeInterresting(currentKey)) {
+//			return ElementKey.INOBJECT;
+//		}
 		JBSubQueries subCol = resultCollector.foundObjectPath(objRef);
 		if (subCol!=null) {
 			 JSONParser.fMethod.apply(json, subCol).createIndex(ElementKey.ROOT,null);

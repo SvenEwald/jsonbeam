@@ -19,6 +19,8 @@
 package org.jsonbeam;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -27,10 +29,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.jsonbeam.annotations.JBDocURL;
+import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.intern.evaluation.DefaultEvaluator;
-import org.jsonbeam.intern.io.EncodedCharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.FileCharacterSourceFactory;
+import org.jsonbeam.intern.io.EncodedCharacterSource;
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.io.StringCharacterSource;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
 import org.jsonbeam.intern.projector.JBProjector;
@@ -95,7 +98,7 @@ public class JsonProjector {
 			}
 
 			@Override
-			public <T> T fromURLAnnotation(final Class<T> projectionInterface, final Object... optionalParams) throws IOException {
+			public <T> T fromURLAnnotation(final Class<T> projectionInterface, final Object... optionalParams)  {
 				JBDocURL annotation = projectionInterface.getAnnotation(JBDocURL.class);
 				if (annotation == null) {
 					throw new IllegalArgumentException("There is no " + JBDocURL.class.getSimpleName() + " annotation on the interface " + projectionInterface);
@@ -110,7 +113,11 @@ public class JsonProjector {
 
 			@Override
 			public CanEvaluateOrProject file(final File file) {
-				return new DefaultEvaluator(delegate, () -> FileCharacterSourceFactory.sourceFor(file, charset));
+				try {
+					return stream(new FileInputStream(file));
+				} catch (FileNotFoundException e) {
+					throw new JBIOException(e);
+				}				
 			}
 
 			@Override
@@ -121,7 +128,10 @@ public class JsonProjector {
 	}
 
 	public CanEvaluateOrProject onJSONString(final CharSequence json) {
-		return new DefaultEvaluator(delegate, () -> new StringCharacterSource(json));
+		if (json instanceof String) {
+			return new DefaultEvaluator(delegate, () -> new StringCharacterSource((String)json));
+		}
+		return new DefaultEvaluator(delegate, () -> new CharSeqCharacterSource(json));
 	}
 
 	public CanEvaluateOrProject onJSONChars(final char[] json) {
@@ -131,11 +141,13 @@ public class JsonProjector {
 	public CanEvaluateOrProject onJSONBytes(final byte[] json, final Charset charset) {
 		return new DefaultEvaluator(delegate, () -> EncodedCharacterSource.handleBOM(json, 0,json.length, charset));
 	}
-
+	
 	/**
 	 * Remove all cached reflection data. Call this method if you are not going to create projections any more.
 	 */
 	public void dropAllCaches() {
 		JBProjector.dropAllCaches();
 	}
+
+
 }

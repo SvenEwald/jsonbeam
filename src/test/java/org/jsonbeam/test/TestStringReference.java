@@ -20,7 +20,7 @@ package org.jsonbeam.test;
 
 import org.jsonbeam.intern.index.model.values.StringValueReference;
 import org.jsonbeam.intern.io.CharacterSource;
-import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -32,7 +32,7 @@ public class TestStringReference {
 
 	@Test
 	public void testStringRefFull() {
-		CharacterSource source=new StringCharacterSource("huhu");
+		CharacterSource source=new CharSeqCharacterSource("huhu");
 		StringValueReference reference = new StringValueReference(source.getPosition(), "huhu".length(),source );
 		assertEquals("huhu", reference.apply());
 		assertEquals("huhu", reference.toString());
@@ -40,7 +40,7 @@ public class TestStringReference {
 
 	@Test
 	public void testStringRefPart() {
-		CharacterSource source=new StringCharacterSource("shuhuv");
+		CharacterSource source=new CharSeqCharacterSource("shuhuv");
 		source.next();
 		StringValueReference reference = new StringValueReference(source.getPosition(), "huhu".length(),source);
 		assertEquals("huhu", reference.apply());
@@ -49,7 +49,7 @@ public class TestStringReference {
 
 	@Test
 	public void testSingleCharRef() {
-		CharacterSource source= new StringCharacterSource("12345");
+		CharacterSource source= new CharSeqCharacterSource("12345");
 		source.next();
 		source.next();
 		StringValueReference stringValueReference = new StringValueReference(source.getPosition(), 1,source);

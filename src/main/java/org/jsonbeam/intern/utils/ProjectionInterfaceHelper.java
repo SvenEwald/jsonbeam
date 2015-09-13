@@ -18,6 +18,10 @@
  */
 package org.jsonbeam.intern.utils;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,11 +33,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.jsonbeam.annotations.JBRead;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 public enum  ProjectionInterfaceHelper {
 	;

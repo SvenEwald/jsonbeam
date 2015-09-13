@@ -18,6 +18,15 @@
  */
 package org.jsonbeam.test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -31,19 +40,10 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.net.URL;
 
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.utils.JBExpect;
 import org.junit.Assert;
@@ -150,7 +150,7 @@ public class TestProjectionRegression {
 
 	@Test
 	public void testParseJsonString() throws Throwable {
-		CharacterSource source = new StringCharacterSource(json);
+		CharacterSource source = new CharSeqCharacterSource(json);
 		runParseJson(source);
 	}
 	

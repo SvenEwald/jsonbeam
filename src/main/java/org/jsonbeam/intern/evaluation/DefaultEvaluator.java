@@ -24,9 +24,10 @@ import java.util.function.Supplier;
 
 import org.jsonbeam.JPathEvaluator;
 import org.jsonbeam.exceptions.JBUnimplemented;
+import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.io.CharacterSource;
-import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
+import org.jsonbeam.intern.projector.JBProjector;
 
 /**
  * @author Sven
@@ -43,7 +44,7 @@ public class DefaultEvaluator implements CanEvaluateOrProject {
 
 	@Override
 	public JPathEvaluator evalJPath(final String jpath) {
-		throw new JBUnimplemented();
+		return new DefaultJPathEvaluator(projector,jpath,docProvider);
 	}
 	
 

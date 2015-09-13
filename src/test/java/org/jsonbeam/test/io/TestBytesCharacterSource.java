@@ -18,9 +18,9 @@
  */
 package org.jsonbeam.test.io;
 
-import java.util.stream.IntStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.IntStream;
 
 import org.jsonbeam.intern.io.EncodedCharacterSource;
 import org.junit.Test;

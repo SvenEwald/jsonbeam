@@ -18,9 +18,8 @@
  ************************************************************************/
 package org.jsonbeam.exceptions;
 
-import java.util.stream.Collectors;
-
 import java.text.MessageFormat;
+import java.util.stream.Collectors;
 
 public class ParseErrorException extends RuntimeException {
 

@@ -18,14 +18,13 @@
  */
 package org.jsonbeam.intern.projector;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jsonbeam.intern.utils.ProjectionInterfaceHelper;
-
-import java.io.Serializable;
 
 public class ProjectionType {
 	//private final Class<?> projectionInterface;

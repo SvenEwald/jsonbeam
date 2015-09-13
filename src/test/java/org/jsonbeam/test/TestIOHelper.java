@@ -18,9 +18,8 @@
  */
 package org.jsonbeam.test;
 
-import java.util.Random;
-
 import java.io.ByteArrayInputStream;
+import java.util.Random;
 
 import org.jsonbeam.intern.utils.IOHelper;
 import org.junit.Test;

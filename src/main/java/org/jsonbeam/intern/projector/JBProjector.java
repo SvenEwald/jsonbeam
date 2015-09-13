@@ -18,6 +18,7 @@
  */
 package org.jsonbeam.intern.projector;
 
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -26,15 +27,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import java.lang.reflect.Proxy;
-
 import org.jsonbeam.JsonProjector.Flags;
 import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.model.IndexReference;
 import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.io.CharacterSource;
-import org.jsonbeam.intern.parser.IterativeJSONParser;
 import org.jsonbeam.intern.parser.JSONParser;
 import org.jsonbeam.intern.utils.ProjectionInterfaceHelper;
 
@@ -68,7 +66,7 @@ public class JBProjector {
 
 	private final static Map<Class<?>, ProjectionType> knownProjectionTypes = new ConcurrentHashMap<>();
 
-	private JBQueries calculateQueriesForRootProjection(final ProjectionType projectionType) {
+	public  JBQueries calculateQueriesForRootProjection(final ProjectionType projectionType) {
 		JBQueries rootQueries = new JBQueries();
 		//projectionType.getProjectionsMethods().map(m -> method2PathRef(rootQueries, m)).forEach(rootQueries::addQuery);
 		for (ProjectionMethod pm : projectionType.getProjectionsMethods()) {
@@ -141,7 +139,7 @@ public class JBProjector {
 
 	}
 
-	private ProjectionType class2ProjectionType(final Class<?> projectionInterface) {
+	public ProjectionType class2ProjectionType(final Class<?> projectionInterface) {
 		return knownProjectionTypes.computeIfAbsent(projectionInterface, ProjectionType::new);
 	}
 

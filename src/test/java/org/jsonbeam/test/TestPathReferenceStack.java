@@ -18,15 +18,14 @@
  */
 package org.jsonbeam.test;
 
+import org.jsonbeam.intern.index.keys.ArrayIndexKey;
+import org.jsonbeam.intern.index.keys.KeyReference;
+import org.jsonbeam.intern.index.keys.PathReferenceStack;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import org.jsonbeam.intern.index.keys.ArrayIndexKey;
-import org.jsonbeam.intern.index.keys.KeyReference;
-import org.jsonbeam.intern.index.keys.PathReferenceStack;
 
 public class TestPathReferenceStack {
 

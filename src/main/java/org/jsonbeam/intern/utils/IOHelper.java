@@ -18,8 +18,6 @@
  */
 package org.jsonbeam.intern.utils;
 
-import java.util.Optional;
-import java.util.function.BiFunction;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +25,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  * @author Sven
@@ -117,7 +117,7 @@ public class IOHelper {
 		if ((buffer[o] == (byte) 0xFF) && (buffer[o+1] == (byte) 0xFE)) {
 			return Optional.of("UTF-16LE");
 		}
-		if (buffer.length < 3) {
+		if (buffer.length < 3+offset) {
 			return Optional.empty();
 		}
 		if ((buffer[o] == (byte) 0xEF) && (buffer[o+1] == (byte) 0xBB) && (buffer[o+2] == (byte) 0xBF)) {
@@ -125,4 +125,5 @@ public class IOHelper {
 		}
 		return Optional.empty();
 	}
+	
 }

@@ -18,24 +18,14 @@
  */
 package org.jsonbeam.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.jsonbeam.intern.io.EncodedCharacterSource;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.FileCharacterSourceFactory;
-import org.jsonbeam.intern.io.StringCharacterSource;
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.utils.Pair;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -45,11 +35,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_16;
+import static java.nio.charset.StandardCharsets.UTF_16BE;
+import static java.nio.charset.StandardCharsets.UTF_16LE;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.jsonbeam.intern.io.EncodedCharacterSource.handleBOM;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Sven
  */
 @RunWith(Parameterized.class)
 public class TestMinimalCharacterSourceFunctions {
+
+	private final static Charset CP1252 = Charset.forName("CP1252");
 
 	@ClassRule
 	public static TemporaryFolder folder = new TemporaryFolder();
@@ -68,49 +71,33 @@ public class TestMinimalCharacterSourceFunctions {
 
 	@Parameters(name = "{1}")
 	public static Iterable<Object[]> params() throws Exception {
-		String string = "1234";
-		ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes(Charset.forName("CP1252")));
+		String string = "1234\" \tX";
+		//	ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes(CP1252));
 
-		Stream<Pair<Supplier<CharacterSource>, String>> stream = Stream.<Pair<Supplier<CharacterSource>, String>>of(//
-				new Pair<>(() -> new StringCharacterSource(string), "StringCharacterSource"),//
-				new Pair<>(() -> new CharsCharacterSource(string.toCharArray(),-1,string.length()-1), "CharsCharacterSource"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(Charset.forName("CP1252")),0, string.getBytes(Charset.forName("CP1252")).length, Charset.forName("CP1252")), "BytesCharacterSource_CP1252"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.US_ASCII),0, string.getBytes(StandardCharsets.US_ASCII).length, StandardCharsets.US_ASCII), "BytesCharacterSource_US_ASCII"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.ISO_8859_1),0, string.getBytes(StandardCharsets.ISO_8859_1).length, StandardCharsets.ISO_8859_1), "BytesCharacterSource_ISO_8859_1"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.UTF_8),0, string.getBytes(StandardCharsets.UTF_8).length, StandardCharsets.UTF_8), "BytesCharacterSource_UTF_8"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.UTF_16),0, string.getBytes(StandardCharsets.UTF_16).length, StandardCharsets.UTF_16), "BytesCharacterSource_UTF_16"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.UTF_16BE),0, string.getBytes(StandardCharsets.UTF_16BE).length, StandardCharsets.UTF_16BE), "BytesCharacterSource_UTF_16BE"), //
-				new Pair<>(() -> EncodedCharacterSource.handleBOM(string.getBytes(StandardCharsets.UTF_16LE),0, string.getBytes(StandardCharsets.UTF_16LE).length, StandardCharsets.UTF_16LE), "BytesCharacterSource_UTF_16LE") //				
-			//	new Pair<>(() -> createFile(string, Charset.forName("CP1252")), "FileCharacterSource_CP1252")//
+		Stream<Pair<Supplier<CharacterSource>, String>> stream = Stream.<Pair<Supplier<CharacterSource>, String>> of(//
+				new Pair<>(() -> new CharSeqCharacterSource(string), "StringCharacterSource"), //
+				new Pair<>(() -> new CharsCharacterSource(string.toCharArray(), -1, string.length() - 1), "CharsCharacterSource"), //
+
+		new Pair<>(() -> handleBOM(string.getBytes(CP1252), 0, string.getBytes(CP1252).length, CP1252), "BytesCharacterSource_CP1252"), //
+				new Pair<>(() -> handleBOM(string.getBytes(US_ASCII), 0, string.getBytes(US_ASCII).length, US_ASCII), "BytesCharacterSource_US_ASCII"), //
+				new Pair<>(() -> handleBOM(string.getBytes(ISO_8859_1), 0, string.getBytes(ISO_8859_1).length, ISO_8859_1), "BytesCharacterSource_ISO_8859_1"), //
+				new Pair<>(() -> handleBOM(string.getBytes(UTF_8), 0, string.getBytes(UTF_8).length, UTF_8), "BytesCharacterSource_UTF_8"), //
+				new Pair<>(() -> handleBOM(string.getBytes(UTF_16), 0, string.getBytes(UTF_16).length, UTF_16), "BytesCharacterSource_UTF_16"), //
+				new Pair<>(() -> handleBOM(string.getBytes(UTF_16BE), 0, string.getBytes(UTF_16BE).length, UTF_16BE), "BytesCharacterSource_UTF_16BE"), //
+				new Pair<>(() -> handleBOM(string.getBytes(UTF_16LE), 0, string.getBytes(UTF_16LE).length, UTF_16LE), "BytesCharacterSource_UTF_16LE") //				
+
+		//	new Pair<>(() -> createFile(string, Charset.forName("CP1252")), "FileCharacterSource_CP1252")//
 		);
-			return ()->stream.map(p->p.<Object[]>reduce((k,v)->new Object[]{k,v})).iterator();
-	}
-
-	private static CharacterSource createFile(String content, Charset charset) {
-		File newFile;
-		try {
-			assertTrue(folder.getRoot().exists());
-			newFile = folder.newFile("jb" + System.nanoTime() + "." + charset.name());
-			try (FileOutputStream os = new FileOutputStream(newFile)) {
-				os.write(content.getBytes(charset));
-			}
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		return  FileCharacterSourceFactory.sourceFor(newFile, charset);
+		return () -> stream.map(p -> p.<Object[]> reduce((k, v) -> new Object[] { k, v })).iterator();
 	}
 
 	@Test
 	public void testPrimaryFunctions() {
-		assertTrue(source.hasNext());
-		assertEquals('1', source.next());
-		assertTrue(source.hasNext());
-		assertEquals('2', source.next());
-		assertTrue(source.hasNext());
-		assertEquals('3', source.next());
-		assertTrue(source.hasNext());
-		assertEquals('4', source.next());
+		Stream.of('1', '2', '3', '4', '"', ' ', '\t', 'X').forEachOrdered(c -> {
+			assertTrue(source.hasNext());
+			assertEquals((char) c, source.next());
+		});
+
 		assertFalse(source.hasNext());
 	}
 
@@ -118,19 +105,19 @@ public class TestMinimalCharacterSourceFunctions {
 	public void testSub() {
 		source.next();
 		CharacterSource subsource = source.getSourceFromPosition(source.getPosition());
-		assertTrue(subsource.hasNext());
-		assertEquals("" + '2', "" + subsource.next());
-		assertTrue(subsource.hasNext());
-		assertEquals("" + '3', "" + subsource.next());
-		assertTrue(subsource.hasNext());
-		assertEquals("" + '4', "" + subsource.next());
+		Stream.of('2', '3', '4', '"', ' ', '\t', 'X').forEachOrdered(c -> {
+			assertTrue(subsource.hasNext());
+			assertEquals((char) c, subsource.next());
+		});
+
 		assertFalse(subsource.hasNext());
 	}
 
 	@Test
-	public void testSubCharSeq() {
-		//		assertEquals("123", source.asCharSequence(3).toString());
-		//		CharacterSource subsource = source.getSourceFromPosition(1);
-		//		assertEquals("234", subsource.asCharSequence(3).toString());
+	public void testSkipToQuoteAndWhitespace() {
+		int skipToQuote = source.skipToQuote();
+		assertEquals(4, skipToQuote);
+		char c = source.nextConsumingWhitespace();
+		assertEquals('X', c);
 	}
 }

@@ -19,13 +19,10 @@
 package org.jsonbeam.intern.parser;
 
 import java.util.Deque;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.jsonbeam.exceptions.ParseErrorException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.index.JBResultCollector;
-import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.keys.ArrayIndexKey;
 import org.jsonbeam.intern.index.keys.ElementKey;
 import org.jsonbeam.intern.index.model.IndexReference;

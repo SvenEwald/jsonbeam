@@ -92,7 +92,6 @@ public interface ProjectionInput {
 	 *            a public interface.
 	 * @param optionalParams
 	 * @return a new projection instance
-	 * @throws IOException
 	 */
-	<T> T fromURLAnnotation(final Class<T> projectionInterface, Object... optionalParams) throws IOException;
+	<T> T fromURLAnnotation(final Class<T> projectionInterface, Object... optionalParams);
 }

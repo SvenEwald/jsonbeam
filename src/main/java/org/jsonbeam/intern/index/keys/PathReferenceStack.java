@@ -31,8 +31,7 @@ public class PathReferenceStack implements Iterable<ElementKey> {
 
 	public static final PathReferenceStack EMPTY = new PathReferenceStack();
 
-	@SafeVarargs
-	public static PathReferenceStack parse(String query, final Supplier<JBSubQueries>... subqueries) {
+	public static PathReferenceStack parse(String query) {
 		if (query.startsWith("$.")) {
 			query = query.substring(2);
 		}

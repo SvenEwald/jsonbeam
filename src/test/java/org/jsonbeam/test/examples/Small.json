@@ -1,5 +1,7 @@
 {
     "debug": "on\toff",
     "num" : 1
-
+	"somebool": true,
+	"otherbool":false,
+	"somenull":null
 }
