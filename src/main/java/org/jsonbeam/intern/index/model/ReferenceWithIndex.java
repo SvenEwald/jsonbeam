@@ -20,11 +20,12 @@ package org.jsonbeam.intern.index.model;
 
 import java.util.Optional;
 
+import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.index.JBSubQueries;
 
 public interface ReferenceWithIndex extends Reference {
 
-	void addSubCollector(JBSubQueries subCollector);
+	void addSubCollector(JBQueries subCollector);
 
-	Optional<JBSubQueries> getSubCollector();
+	Optional<JBQueries> getSubCollector();
 }

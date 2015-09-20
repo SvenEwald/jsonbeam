@@ -194,7 +194,7 @@ public class TestProjectionRegression {
 		System.out.println("Create Projection:" + (projectionCreated - testStart) + "ms.  \tCall:" + (afterProjectionCall - beforeProjectionCall) + "ms\t" + m);
 	}
 
-	private Function<JBExpect, Object> getAccessorForMethod(final Method method) {
+	private static Function<JBExpect, Object> getAccessorForMethod(final Method method) {
 		Class<?> returnType = method.getReturnType();
 		if (method.getGenericReturnType() instanceof ParameterizedType) {
 			returnType = (Class<?>) (((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]);
@@ -229,7 +229,7 @@ public class TestProjectionRegression {
 
 	}
 
-	private void assertMultiEquals(final Object expected, final Function<Object, Integer> elength, final BiFunction<Object, Integer, Object> egetter, final Object result, final Function<Object, Integer> rlength, final BiFunction<Object, Integer, Object> rGetter) {
+	private static void assertMultiEquals(final Object expected, final Function<Object, Integer> elength, final BiFunction<Object, Integer, Object> egetter, final Object result, final Function<Object, Integer> rlength, final BiFunction<Object, Integer, Object> rGetter) {
 		Integer len = elength.apply(expected);
 		
 		Assert.assertEquals(len, rlength.apply(result));

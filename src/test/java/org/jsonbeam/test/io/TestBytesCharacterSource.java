@@ -91,7 +91,7 @@ public class TestBytesCharacterSource {
 		assertEquals(string, decodedString);
 	}
 
-	private void check(final String string, final Charset charset) {
+	private static void check(final String string, final Charset charset) {
 		byte[] bytes = string.getBytes(charset);
 		//		for (byte b : bytes) {
 		//			System.out.println("0x" + Integer.toHexString(b));

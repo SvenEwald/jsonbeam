@@ -66,7 +66,7 @@ public class JBProjector {
 
 	private final static Map<Class<?>, ProjectionType> knownProjectionTypes = new ConcurrentHashMap<>();
 
-	public  JBQueries calculateQueriesForRootProjection(final ProjectionType projectionType) {
+	public JBQueries calculateQueriesForRootProjection(final ProjectionType projectionType) {
 		JBQueries rootQueries = new JBQueries();
 		//projectionType.getProjectionsMethods().map(m -> method2PathRef(rootQueries, m)).forEach(rootQueries::addQuery);
 		for (ProjectionMethod pm : projectionType.getProjectionsMethods()) {
@@ -80,7 +80,7 @@ public class JBProjector {
 		return rootQueries;
 	}
 
-	private JBSubQueries calculateSubQueriesForSubProjection(final JBQueries parent, final ProjectionType projectionType) {
+	public JBSubQueries calculateSubQueriesForSubProjection(final JBQueries parent, final ProjectionType projectionType) {
 		JBSubQueries queries = new JBSubQueries(parent);
 		//projectionType.getProjectionsMethods().map(m -> method2PathRef(queries, m)).forEach(queries::addQuery);
 		for (ProjectionMethod pm : projectionType.getProjectionsMethods()) {
@@ -131,7 +131,7 @@ public class JBProjector {
 
 		//	assert rootQueries.dumpQueryGraph();
 
-		JSONParser jsonParser =  JSONParser.fMethod.apply(json, rootQueries);
+		JSONParser jsonParser = JSONParser.fMethod.apply(json, rootQueries);
 		IndexReference rootReference = jsonParser.createIndex();
 		//assert rootQueries.dumpResults();
 		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(rootQueries, this, projectionType);
@@ -160,6 +160,9 @@ public class JBProjector {
 	}
 
 	Function<Stream<Reference>, Stream<?>> calcGlobalTypeConverter(final Class<?> effectiveReturnType) {
+		if (ProjectionInterfaceHelper.isProjectionInterface(effectiveReturnType)) {
+			return s -> s.<Object> map(ref -> projectReference((IndexReference) ref, effectiveReturnType));
+		}
 		throw new IllegalArgumentException("Type converter for class " + effectiveReturnType + " not implemented yet");
 	}
 

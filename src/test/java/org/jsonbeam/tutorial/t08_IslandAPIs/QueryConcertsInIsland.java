@@ -18,11 +18,13 @@
  */
 package org.jsonbeam.tutorial.t08_IslandAPIs;
 
+import org.jsonbeam.tutorial.TutorialTestCase;
+
 /**
  * @author sven
  *
  */
-public class QueryConcertsInIsland {
+public class QueryConcertsInIsland extends TutorialTestCase{
 
 	private final static String URL="http://apis.is/concerts";
 }

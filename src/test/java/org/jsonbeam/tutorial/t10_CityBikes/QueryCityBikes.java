@@ -16,26 +16,26 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.intern.projector;
+package org.jsonbeam.tutorial.t10_CityBikes;
 
-import org.jsonbeam.JPathEvaluator;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
-public interface CanEvaluateOrProject {
+import org.jsonbeam.JsonProjector;
+import org.junit.Test;
 
-	/**
-	 * Use this method to extract one or multiple 
-	 * 
-	 * @param jpath
-	 *            to be evaluated on input
-	 *   
-	 * @return EvaluationBuilder to choose target type
-	 */
-	JPathEvaluator evalJPath(String jpath);
+/**
+ * @author sven
+ *
+ */
+public class QueryCityBikes {
 
-	/**
-	 * @param type
-	 * @return a projection
-	 */
-	<T> T createProjection(Class<T> type);
+	private final static String URL="http://api.citybik.es/networks.json";
 	
+	
+	@Test
+	public void queryNetworks() {
+		Stream<String> stream = new JsonProjector().input(StandardCharsets.UTF_8).url(URL).evalJPath("..city").asStreamOf(String.class);
+		stream.forEach(System.out::println);
+	}
 }

@@ -28,8 +28,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import org.jsonbeam.annotations.JBRead;
@@ -37,7 +39,8 @@ import org.jsonbeam.annotations.JBRead;
 public enum  ProjectionInterfaceHelper {
 	;
 	private final static Set<Class<?>> VALID_PARAMETERIZED_RETURN_TYPES = new HashSet<>(Arrays.asList(Set.class, List.class, Stream.class, Optional.class,Iterable.class,Collection.class));
-
+	private final static Map<Class<?>,Boolean> IS_PROJECTION_INTERFACE=new ConcurrentHashMap<>();
+	
 	public static  Optional<RuntimeException> checkProjectionInterfaceType(final Class<?> projectionInterface) {
 		if ((projectionInterface == null) || (!projectionInterface.isInterface()) || ((projectionInterface.getModifiers() & Modifier.PUBLIC) != Modifier.PUBLIC)) {
 			return Optional.of(new IllegalArgumentException("Parameter " + projectionInterface + " is not a public interface."));
@@ -172,6 +175,10 @@ public enum  ProjectionInterfaceHelper {
 	
 	
 	public static boolean isProjectionInterface(final Class<?> clazz) {
+		return IS_PROJECTION_INTERFACE.computeIfAbsent(clazz, ProjectionInterfaceHelper::projectionInterfacePredicate).booleanValue();
+	}
+	
+	private static boolean projectionInterfacePredicate(Class<?> clazz) {
 		return clazz.isInterface() && Arrays.stream(clazz.getDeclaredMethods()).filter(ProjectionInterfaceHelper::isProjectionMethod).findAny().isPresent();
 	}
 	

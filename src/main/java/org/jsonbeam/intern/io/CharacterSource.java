@@ -33,17 +33,9 @@ public interface CharacterSource {
 	char next();
 
 	int getPosition();
-
-	default char nextConsumingWhitespace() {
-		char c;
-		while (hasNext()) {
-			c = next();
-			if (c > ' ') {
-				return c;
-			}
-		}
-		throw new UnexpectedEOF(getPosition());
-	}
+	
+	char nextConsumingWhitespace();
+	
 	
 	default int skipToQuote() {
 		char c;

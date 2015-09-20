@@ -18,17 +18,20 @@
  */
 package org.jsonbeam.tutorial.t02_geonames;
 
-import java.nio.charset.StandardCharsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.jsonbeam.JsonProjector;
 import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
-
 /**
  * @author Sven
  */
+@SuppressWarnings("static-method")
 public class TestGeonames extends TutorialTestCase {
 
 	public interface City {
@@ -41,10 +44,33 @@ public class TestGeonames extends TutorialTestCase {
 		Stream<City> getCities();
 	}
 
+	
 	@Test
 	public void testCities() {
 		String url = "http://api.geonames.org/citiesJSON?formatted=true&north=44.1&south=-9.9&east=-22.4&west=55.2&lang=de&username=demo&style=full";
-		Geonames geonames = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Geonames.class);
+		Geonames geonames = new JsonProjector().input(UTF_8).url(url).createProjection(Geonames.class);
 		geonames.getCities().map(City::getName).forEach(System.out::println);
 	}
+	
+	@Test
+	public void testCities2() {
+		String url = "http://api.geonames.org/citiesJSON?formatted=true&north=44.1&south=-9.9&east=-22.4&west=55.2&lang=de&username=demo&style=full";
+		Optional<City> city = new JsonProjector().input(UTF_8).url(url).evalJPath("geonames[0]").as(City.class);
+		city.ifPresent(c->System.out.println(c.getName()));
+	}
+	
+	@Test
+	public void testCitiesAsArray() {
+		String url = "http://api.geonames.org/citiesJSON?formatted=true&north=44.1&south=-9.9&east=-22.4&west=55.2&lang=de&username=demo&style=full";
+		City[] city = new JsonProjector().input(UTF_8).url(url).evalJPath("geonames[*]").asArrayOf(City.class);
+		Arrays.stream(city).map(City::getName).forEach(System.out::println);
+	}
+	
+	@Test
+	public void testCitiesAsStream() {
+		String url = "http://api.geonames.org/citiesJSON?formatted=true&north=44.1&south=-9.9&east=-22.4&west=55.2&lang=de&username=demo&style=full";
+		Stream<City> cities = new JsonProjector().input(UTF_8).url(url).evalJPath("geonames[*]").asStreamOf(City.class);
+		cities.map(City::getName).forEach(System.out::println);
+	}
+	
 }

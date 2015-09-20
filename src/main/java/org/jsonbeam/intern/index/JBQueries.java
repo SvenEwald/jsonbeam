@@ -45,9 +45,9 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	protected final Map<ElementKey, Set<PathReferenceStack>> patterns = new HashMap<>();
 	private final PathReferenceStack currentPath = new PathReferenceStack();
 	private boolean queryAllArrayElements = false;
-	private final Map<PathReferenceStack, Supplier<JBSubQueries>> path2SubQueries = new HashMap<>();
+	private final Map<PathReferenceStack, Supplier<JBQueries>> path2SubQueries = new HashMap<>();
 
-	public JBQueries addQuery(final PathReferenceStack query, final Supplier<JBSubQueries> subqueries) {
+	public JBQueries addQuery(final PathReferenceStack query, final Supplier<JBQueries> subqueries) {
 		if (subqueries != null) {
 			path2SubQueries.put(query, subqueries);
 		}
@@ -94,7 +94,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	}
 
 	@Override
-	public JBSubQueries foundObjectPath(final Supplier<ObjectReference> item) {
+	public JBQueries foundObjectPath(final Supplier<ObjectReference> item) {
 		//System.out.println(DH.oid(this) + " found object path:" + currentPath + " direct hit:" + directHits.containsKey(currentPath));
 		if (currentPath.isEmpty()) {
 			return null;
@@ -106,12 +106,12 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		}
 
 		PathReferenceStack pathReferenceStack2 = directHits.get(currentPath);
-		JBSubQueries subQueries = null;
+		JBQueries subQueries = null;
 		ObjectReference objectReference = null;
 		if (pathReferenceStack2 != null) {
 			objectReference = item.get();
 			storeResult(pathReferenceStack2, objectReference);
-			Supplier<JBSubQueries> supplier = path2SubQueries.get(pathReferenceStack2);
+			Supplier<JBQueries> supplier = path2SubQueries.get(pathReferenceStack2);
 			if (supplier != null) {
 				subQueries = supplier.get();
 			}
@@ -140,7 +140,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 			}
 			storeResult(pattern, objectReference);
 			if (path2SubQueries.containsKey(pattern)) {//FIXME: this neeeeeds cleanup
-				JBSubQueries patternQueries = path2SubQueries.get(pattern).get();
+				JBQueries patternQueries = path2SubQueries.get(pattern).get();
 				if (subQueries == null) {
 					subQueries = patternQueries;
 				}
@@ -157,7 +157,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 	 * @param objectReference
 	 * @param subQueries
 	 */
-	private void updateObjectRef(ObjectReference objectReference, JBSubQueries subQueries) {
+	private static void updateObjectRef(ObjectReference objectReference, JBQueries subQueries) {
 		if ((objectReference == null) || (subQueries == null)) {
 			return;
 		}
@@ -247,4 +247,16 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		string += Stream.concat(directHits.keySet().stream(), patterns.keySet().stream()).map(Object::toString).collect(Collectors.joining("<,>", ">", "<"));
 		return string;
 	}
+	
+	public JBQueries merge(final JBQueries parent) {
+		//		System.out.println("this    :"+this.toString());
+		//		System.out.println("existing:"+this.parent);
+		//		System.out.println("new     :"+parent);
+		patterns.putAll(parent.patterns);
+		directHits.putAll(parent.directHits);
+		elementsToQuery.addAll(parent.elementsToQuery);
+		//		throw new RuntimeException("Not implmented yet");
+		return this;
+	}
+	
 }

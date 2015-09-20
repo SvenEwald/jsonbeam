@@ -18,20 +18,27 @@
  */
 package org.jsonbeam.intern.evaluation;
 
-import java.lang.reflect.Proxy;
+import java.lang.reflect.Array;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jsonbeam.JPathEvaluator;
+import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.exceptions.JBUnimplemented;
 import org.jsonbeam.intern.index.JBQueries;
+import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.keys.PathReferenceStack;
+import org.jsonbeam.intern.index.model.IndexReference;
 import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.index.model.values.LiteralReference;
 import org.jsonbeam.intern.io.CharacterSource;
@@ -39,6 +46,7 @@ import org.jsonbeam.intern.parser.IndexOnlyJSONParser;
 import org.jsonbeam.intern.projector.BCProjectionInvocationHandler;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.projector.ProjectionType;
+import org.jsonbeam.intern.utils.ProjectionInterfaceHelper;
 
 /**
  * @author Sven
@@ -82,19 +90,32 @@ public class DefaultJPathEvaluator implements JPathEvaluator {
 	 * @param docProvider2
 	 * @return
 	 */
-	private List<Reference> evaluateNonProjection(String jpath, Supplier<CharacterSource> docProvider2) {
+	private static List<Reference> evaluateNonProjection(String jpath, Supplier<CharacterSource> docProvider2) {
 		PathReferenceStack parse = PathReferenceStack.parse(jpath);
 		JBQueries queries = new JBQueries().addQuery(parse, null);
 		new IndexOnlyJSONParser(docProvider2.get(), queries).createIndex();
 		return queries.getResultsForPath(parse);
 	}
 
-	private Optional<Reference> evaluateNonProjectionSingleValue(String jpath, Supplier<CharacterSource> docProvider2) {
+	private static Optional<Reference> evaluateNonProjectionSingleValue(String jpath, Supplier<CharacterSource> docProvider2) {
 		List<Reference> list = evaluateNonProjection(jpath, docProvider2);
 		if (list.isEmpty()) {
 			return Optional.empty();
 		}
 		return Optional.of(list.get(0));
+	}
+
+	private List<Reference> evaluateResultsForSubprojection(Class<?> componentType) {
+		ProjectionType projectionType = projector.class2ProjectionType(componentType);
+		JBQueries rootQueries = new JBQueries();
+		//JBSubQueries subQueries2 = ;
+		PathReferenceStack path = PathReferenceStack.parse(jpath);
+		//FIXME: Somehow reuse the same query? Avoid calculation for multiple invocations on same type.
+		rootQueries.addQuery(path, () -> projector.calculateSubQueriesForSubProjection((rootQueries), projectionType));
+		new IndexOnlyJSONParser(docProvider.get(), rootQueries).createIndex();
+		List<Reference> resultsForPath = rootQueries.getResultsForPath(path);
+		//rootQueries.dumpResults();
+		return resultsForPath;
 	}
 
 	/**
@@ -153,40 +174,24 @@ public class DefaultJPathEvaluator implements JPathEvaluator {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Date asDate() {
-		throw new JBUnimplemented();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public <T> Optional<T> as(Class<T> returnType) {
-		throw new JBUnimplemented();
-//		ProjectionType projectionType = projector.class2ProjectionType(returnType);
-//		JBQueries subqueries = projector.calculateQueriesForRootProjection(projectionType);
-//		PathReferenceStack path = PathReferenceStack.parse(jpath);
-////		new JBQueries().addQuery(PathReferenceStack., subqueries)
-////		new IndexOnlyJSONParser(docProvider.get(), queries).createIndex();
-//		final BCProjectionInvocationHandler projectionInvocationHandler = new BCProjectionInvocationHandler(queries, projector, projectionType);
-//		return Optional.of((T) Proxy.newProxyInstance(returnType.getClassLoader(), projectionType.getImplementedInterfaces(), projectionInvocationHandler));
 		
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public <T> T[] asArrayOf(Class<T> componentType) {
-		throw new JBUnimplemented();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public <T> List<T> asListOf(Class<T> componentType) {
-		throw new JBUnimplemented();
+		List<Reference> resultsForPath;
+		if (ProjectionInterfaceHelper.isProjectionInterface(returnType)) {
+			resultsForPath = evaluateResultsForSubprojection(returnType);
+		} else {
+			resultsForPath=evaluateNonProjection(jpath, docProvider);
+		}
+		if (resultsForPath.isEmpty()) {
+			return Optional.empty();
+		}
+		Function<Stream<Reference>, Stream<?>> typeConverter = projector.getGlobalTypeConverter(returnType);
+		return (Optional<T>) typeConverter.apply(resultsForPath.stream()).findFirst();
+		//		if (!(resultsForPath.get(0) instanceof IndexReference)) {
+		//			throw new JBIOException("Can not map path '{0}' to type {1}.", jpath, returnType.getSimpleName());
+		//		}
+		//		T t = projector.projectReference((IndexReference) resultsForPath.get(0), returnType);
+		//		return Optional.of(t);
 	}
 
 	/**
@@ -194,7 +199,33 @@ public class DefaultJPathEvaluator implements JPathEvaluator {
 	 */
 	@Override
 	public <T> Stream<T> asStreamOf(Class<T> componentType) {
-		throw new JBUnimplemented();
+		Function<Stream<Reference>, Stream<?>> globalTypeConverter = projector.getGlobalTypeConverter(componentType);
+		List<Reference> resultsForPath;
+		if (ProjectionInterfaceHelper.isProjectionInterface(componentType)) {
+			resultsForPath = evaluateResultsForSubprojection(componentType);
+		}
+		else {
+			resultsForPath = evaluateNonProjection(jpath, docProvider);
+		}
+		return (Stream<T>) globalTypeConverter.apply(resultsForPath.stream());
+		//return (Stream<T>) resultsForPath.stream().filter(r -> r instanceof IndexReference).map(ir -> projector.projectReference((IndexReference) ir, componentType));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public <T> List<T> asListOf(Class<T> componentType) {
+		return asStreamOf(componentType).collect(Collectors.toList());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T[] asArrayOf(Class<T> componentType) {
+		return asStreamOf(componentType).toArray(length -> (T[]) Array.newInstance(componentType, length));
 	}
 
 }

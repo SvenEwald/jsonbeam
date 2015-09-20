@@ -43,7 +43,6 @@ public abstract class TutorialTestCase {
         proxy.setAsProxy();
     }
 
-    @SuppressWarnings("resource")
     @Before
     public void swallowOutput() {
         if (System.getProperty("SwallowTutorialOutput") == null) {

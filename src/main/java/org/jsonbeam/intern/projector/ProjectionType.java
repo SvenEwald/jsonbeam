@@ -19,6 +19,7 @@
 package org.jsonbeam.intern.projector;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +33,11 @@ public class ProjectionType {
 
 	//private final List<Method> publicMethods;
 	private final Class<?>[] implementedInterfaces;
+
+	@Override
+	public String toString() {
+		return "ProjectionType [implementedInterfaces=" + Arrays.toString(implementedInterfaces) + ", projectionMethods=" + projectionMethods + "]";
+	}
 
 	public ProjectionType(final Class<?> projectionInterface) {
 		ProjectionInterfaceHelper.checkProjectionInterfaceType(projectionInterface).ifPresent(error -> {

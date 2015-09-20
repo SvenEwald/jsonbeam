@@ -16,20 +16,33 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.tutorial.t06_iTunes;
+package org.jsonbeam.tutorial.t01_twitter;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.OptionalInt;
+
+import org.jsonbeam.JsonProjector;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
 
 /**
- * @author sven
+ * @author Sven
  */
-public class QueryITunes extends TutorialTestCase {
-
-	private final static String BASEURL = "https://itunes.apple.com/search?term=beatles&entity=musicVideo";
-
+public class QueryURLinTwitter extends TutorialTestCase {
+	
+	// Alternative: http://graph.facebook.com/http://json.org
+	
+	private final static String BASEURL="http://urls.api.twitter.com/1/urls/count.json?url=";
+	
 	@Test
-	public void testITunesQuery() {
-
+	public void testXMLBeam() {
+		OptionalInt asInt = new JsonProjector().input(UTF_8).url(BASEURL+"xmlbeam.org").evalJPath("count").asInt();
+		asInt.ifPresent(System.out::println);
+	}
+	@Test
+	public void testJsonBeam() {
+		OptionalInt asInt = new JsonProjector().input(UTF_8).url(BASEURL+"jsonbeam.org").evalJPath("count").asInt();
+		asInt.ifPresent(System.out::println);
 	}
 }

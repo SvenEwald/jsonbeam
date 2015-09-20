@@ -73,7 +73,7 @@ public class TestIOHelper {
 
 	}
 
-	private void testStreamToBufferFunction(final int size) {
+	private static void testStreamToBufferFunction(final int size) {
 		byte[] origBuffer = new byte[size];
 		new Random().nextBytes(origBuffer);
 		IOHelper.toBuffer(new ByteArrayInputStream(origBuffer), (b, l) -> assertEquality(origBuffer, b, l));
@@ -85,7 +85,7 @@ public class TestIOHelper {
 	 * @param l
 	 * @return
 	 */
-	private Object assertEquality(final byte[] origBuffer, final byte[] b, final int l) {
+	private static Object assertEquality(final byte[] origBuffer, final byte[] b, final int l) {
 		assertEquals(origBuffer.length, l);
 		assertTrue(b.length >= l);
 		for (int i = 0; i < l; ++i) {

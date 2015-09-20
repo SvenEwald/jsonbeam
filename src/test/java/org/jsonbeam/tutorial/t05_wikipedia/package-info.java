@@ -16,26 +16,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.intern.projector;
-
-import org.jsonbeam.JPathEvaluator;
-
-public interface CanEvaluateOrProject {
-
-	/**
-	 * Use this method to extract one or multiple 
-	 * 
-	 * @param jpath
-	 *            to be evaluated on input
-	 *   
-	 * @return EvaluationBuilder to choose target type
-	 */
-	JPathEvaluator evalJPath(String jpath);
-
-	/**
-	 * @param type
-	 * @return a projection
-	 */
-	<T> T createProjection(Class<T> type);
-	
-}
+/**
+ * @author sven
+ *
+ */
+package org.jsonbeam.tutorial.t05_wikipedia;

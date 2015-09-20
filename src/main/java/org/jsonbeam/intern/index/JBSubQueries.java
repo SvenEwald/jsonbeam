@@ -39,7 +39,7 @@ public class JBSubQueries extends JBQueries {
 	}
 
 	@Override
-	public JBSubQueries foundObjectPath(final Supplier<ObjectReference> item) {
+	public JBQueries foundObjectPath(final Supplier<ObjectReference> item) {
 		parent.foundObjectPath(item); 
 		return  super.foundObjectPath(item);
 	}
@@ -50,16 +50,7 @@ public class JBSubQueries extends JBQueries {
 		super.foundValuePath(item);
 	}
 
-	public JBSubQueries merge(final JBSubQueries parent) {
-		//		System.out.println("this    :"+this.toString());
-		//		System.out.println("existing:"+this.parent);
-		//		System.out.println("new     :"+parent);
-		patterns.putAll(parent.patterns);
-		directHits.putAll(parent.directHits);
-		elementsToQuery.addAll(parent.elementsToQuery);
-		//		throw new RuntimeException("Not implmented yet");
-		return this;
-	}
+	
 
 	@Override
 	public ElementKey popPath() {

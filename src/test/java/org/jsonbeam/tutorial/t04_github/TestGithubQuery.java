@@ -25,10 +25,10 @@ import java.util.stream.Stream;
 import org.jsonbeam.JsonProjector;
 import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
-import org.junit.Ignore;
+import org.junit.Test;
 
 /**
- * @author sven
+ * @author Sven
  */
 public class TestGithubQuery extends TutorialTestCase {
 
@@ -43,7 +43,7 @@ public class TestGithubQuery extends TutorialTestCase {
 		List<String> getOwners();
 	}
 
-	@Ignore
+	@Test
 	public void testGithubQuery() {
 		String url = "https://api.github.com/search/repositories?q=json";
 		Result result = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(Result.class);

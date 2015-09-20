@@ -15,7 +15,6 @@
  */
 package org.jsonbeam;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -63,14 +62,6 @@ public interface JPathEvaluator {
 	 * @return String value of evaluation result.
 	 */
 	Optional<String> asString();
-
-	/**
-	 * Evaluates the JPath as a Date value. This method is just a shortcut for as(Date.class); You probably want to specify '
-	 * using ' followed by some formatting pattern consecutive to the JPath.
-	 *
-	 * @return Date value of evaluation result.
-	 */
-	Date asDate();
 
 	/**
 	 * Evaluate the JPath as a value of the given type.

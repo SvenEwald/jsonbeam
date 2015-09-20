@@ -21,14 +21,15 @@ package org.jsonbeam.intern.index.model;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.index.JBSubQueries;
 
 public abstract class IndexReference implements ReferenceWithIndex {
 
-	private JBSubQueries subCollector=null;
+	private JBQueries subCollector=null;
 
 	@Override
-	public void addSubCollector(final JBSubQueries subCollector) {
+	public void addSubCollector(final JBQueries subCollector) {
 		Objects.requireNonNull(subCollector);
 		if (this.subCollector==null) {
 			this.subCollector=subCollector;
@@ -38,7 +39,7 @@ public abstract class IndexReference implements ReferenceWithIndex {
 	}
 
 	@Override
-	public Optional<JBSubQueries> getSubCollector() {
+	public Optional<JBQueries> getSubCollector() {
 		return Optional.ofNullable(subCollector);
 	}
 

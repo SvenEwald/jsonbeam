@@ -28,7 +28,7 @@ public interface JBResultCollector {
 
 	String currentPathAsString();
 
-	JBSubQueries foundObjectPath(Supplier<ObjectReference> item);
+	JBQueries foundObjectPath(Supplier<ObjectReference> item);
 
 	//FIXME: split result collecting into object,array and value paths. Maybe literal paths.
 

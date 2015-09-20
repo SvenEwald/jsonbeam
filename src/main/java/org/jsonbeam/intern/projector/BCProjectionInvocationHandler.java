@@ -212,7 +212,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		return (p, m, a) -> invocationFunction.apply(results.stream());
 	}
 
-	private Class<?> determineEffectiveReturnType(final Method m_) {
+	private static Class<?> determineEffectiveReturnType(final Method m_) {
 		Class<?> returnType = m_.getReturnType();
 		if (returnType.isArray()) {
 			return returnType.getComponentType();

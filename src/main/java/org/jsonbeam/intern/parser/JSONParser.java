@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 
 import org.jsonbeam.exceptions.ParseErrorException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
+import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.index.JBResultCollector;
 import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.keys.ElementKey;
@@ -98,7 +99,7 @@ public abstract class JSONParser {
 //		if (!resultCollector.currentKeyMightBeInterresting(currentKey)) {
 //			return ElementKey.INOBJECT;
 //		}
-		JBSubQueries subCol = resultCollector.foundObjectPath(objRef);
+		JBQueries subCol = resultCollector.foundObjectPath(objRef);
 		if (subCol!=null) {
 			 JSONParser.fMethod.apply(json, subCol).createIndex(ElementKey.ROOT,null);
 			ElementKey popPath = resultCollector.popPath();

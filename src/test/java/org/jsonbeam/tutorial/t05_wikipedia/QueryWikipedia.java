@@ -16,20 +16,33 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.tutorial.t06_iTunes;
+package org.jsonbeam.tutorial.t05_wikipedia;
 
+import java.nio.charset.StandardCharsets;
+
+import org.jsonbeam.JsonProjector;
+import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
 
 /**
  * @author sven
  */
-public class QueryITunes extends TutorialTestCase {
+public class QueryWikipedia extends TutorialTestCase {
 
-	private final static String BASEURL = "https://itunes.apple.com/search?term=beatles&entity=musicVideo";
+	public interface WikipediaStats {
+		@JBRead("..statistics.articles")
+		int getArticleCount();
+
+		@JBRead("..statistics.activeusers")
+		int getActiveUsers();
+	}
 
 	@Test
-	public void testITunesQuery() {
-
+	public void testQueryWikipedia() {
+		String url = "https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics&format=json";
+		WikipediaStats wikipediaStats = new JsonProjector().input(StandardCharsets.UTF_8).url(url).createProjection(WikipediaStats.class);
+		System.out.println("Articles:" + wikipediaStats.getArticleCount());
+		System.out.println("Active users:" + wikipediaStats.getActiveUsers());
 	}
 }

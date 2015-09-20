@@ -38,9 +38,19 @@ public class TestEvaluationAPI {
 	}
 	
 	@Test
+	public void testAsString2() {
+		assertEquals("on\toff",new JsonProjector().onJSONString(json).evalJPath("debug").as(String.class).get());
+	}
+	
+	@Test
+	public void testAsStringStream() {
+		assertEquals("on\toff",new JsonProjector().onJSONString(json).evalJPath("debug").asStreamOf(String.class).findFirst().get());
+	}
+	
+	@Test
 	public void testAsBoolean() {
-		assertTrue(new JsonProjector().onJSONString(json).evalJPath("somebool").asBoolean().get());
-		assertFalse(new JsonProjector().onJSONString(json).evalJPath("otherbool").asBoolean().get());
+		assertTrue(new JsonProjector().onJSONString(json).evalJPath("somebool").asBoolean().get().booleanValue());
+		assertFalse(new JsonProjector().onJSONString(json).evalJPath("otherbool").asBoolean().get().booleanValue());
 	}
 	
 	@Test
