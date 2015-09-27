@@ -26,16 +26,13 @@ import org.jsonbeam.intern.io.EncodedCharacterSource;
  */
 public class ByteArrayCharacterSourceUTF16BE extends EncodedCharacterSource {
 
-	final private byte[] buffer;
-
 	/**
 	 * @param bytes
 	 * @param offset
 	 * @param length
 	 */
 	public ByteArrayCharacterSourceUTF16BE(byte[] bytes, int offset, int length) {
-		super(offset, length);
-		this.buffer = bytes;
+		super(bytes,offset, length);
 	}
 
 	/**
@@ -44,7 +41,6 @@ public class ByteArrayCharacterSourceUTF16BE extends EncodedCharacterSource {
 	@Override
 	public CharacterSource getSourceFromPosition(final int pos) {
 		ByteArrayCharacterSourceUTF16BE source = new ByteArrayCharacterSourceUTF16BE(buffer, pos, max);
-		//source.cursor = pos;
 		return source;
 	}
 	
@@ -56,7 +52,6 @@ public class ByteArrayCharacterSourceUTF16BE extends EncodedCharacterSource {
 		cursor=i;
 		return ((a << 8) | b);
 	}
-	
 
 	@Override
 	public int getPrevPosition() {

@@ -21,7 +21,6 @@ package org.jsonbeam;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,10 +30,9 @@ import java.nio.charset.StandardCharsets;
 import org.jsonbeam.annotations.JBDocURL;
 import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.intern.evaluation.DefaultEvaluator;
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
 import org.jsonbeam.intern.io.EncodedCharacterSource;
-import org.jsonbeam.intern.io.CharSeqCharacterSource;
-import org.jsonbeam.intern.io.StringCharacterSource;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.utils.IOHelper;
@@ -128,9 +126,6 @@ public class JsonProjector {
 	}
 
 	public CanEvaluateOrProject onJSONString(final CharSequence json) {
-		if (json instanceof String) {
-			return new DefaultEvaluator(delegate, () -> new StringCharacterSource((String)json));
-		}
 		return new DefaultEvaluator(delegate, () -> new CharSeqCharacterSource(json));
 	}
 

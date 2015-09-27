@@ -20,6 +20,7 @@ package org.jsonbeam.intern.io;
 
 import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.exceptions.UnexpectedEOF;
+import org.jsonbeam.intern.index.keys.KeyReference;
 
 /**
  * @author sven
@@ -82,7 +83,6 @@ abstract class JsonCharacterSource implements CharacterSource {
 		default:
 			throw new JBIOException("Illegal quote '{0}' at position {1}", "\\" + c2, Integer.valueOf(getPosition()));
 		}
-
 	}
 
 	/**
@@ -133,7 +133,7 @@ abstract class JsonCharacterSource implements CharacterSource {
 	}
 
 	abstract protected int getNextByte();
-	
+
 	public char nextConsumingWhitespace() {
 		char c;
 		while (hasNext()) {
@@ -145,4 +145,168 @@ abstract class JsonCharacterSource implements CharacterSource {
 		throw new UnexpectedEOF(getPosition());
 	}
 
+	public int skipToQuote() {
+		char c;
+		int length = 0;
+		while (hasNext()) {
+			c = next();
+			if (c == '"') {
+				return length;
+			}
+			++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	public KeyReference parseJSONKey() {
+		int start = getPosition();
+		int hash = 0;
+		int length = 0;
+		while (hasNext()) {
+			char c = next();
+			if (c == '"') {
+				return new KeyReference(start, length, hash, this);
+			}
+			++length;
+			hash = (31 * hash) + c;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	/**
+	 * 
+	 */
+	public long skipToStringEnd() {
+		char c;
+		int length = 0;
+		while (hasNext()) {
+			c = next();
+			if ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) {
+				long result = length;
+				return result << 16 | c;
+			}
+			++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	/**
+	 * @return
+	 */
+	public long findNull() {
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		char c = next();
+		if (c != 'u') {
+			return skipToStringEnd() + (2 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'l') {
+			return skipToStringEnd() + (3 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'l') {
+			return skipToStringEnd() + (4 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) {
+			return -1l << 16 | c;
+
+		}
+		return skipToStringEnd() + (5 << 16);
+	}
+
+	public long findTrue() {
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		char c = next();
+		if (c != 'r') {
+			return skipToStringEnd() + (2 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'u') {
+			return skipToStringEnd() + (3 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'e') {
+			return skipToStringEnd() + (4 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) {
+			return -1l << 16 | c;
+
+		}
+		return skipToStringEnd() + (5 << 16);
+	}
+
+	public long findFalse() {
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		char c = next();
+		if (c != 'a') {
+			return skipToStringEnd() + (2 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'l') {
+			return skipToStringEnd() + (3 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 's') {
+			return skipToStringEnd() + (4 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if (c != 'e') {
+			return skipToStringEnd() + (5 << 16);
+		}
+		if (!hasNext()) {
+			throw new UnexpectedEOF(getPosition());
+		}
+		c = next();
+		if ((c <= ' ') || (c == ',') || (c == ']') || (c == '}')) {
+			return -1l << 16 | c;
+
+		}
+		return skipToStringEnd() + (6 << 16);
+	}
+
+	public void setCharsBuffer(KeyReference key) {
+		int length = key.length();
+		int start = key.getStart();
+		char[] chars = new char[length];
+		CharacterSource source = getSourceFromPosition(start);
+		for (int i = 0; i < length; ++i) {
+			chars[i] = source.next();
+		}
+		key.setChars(chars, 0);
+	}
 }

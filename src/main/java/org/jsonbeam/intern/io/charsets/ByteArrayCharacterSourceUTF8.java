@@ -29,16 +29,13 @@ public class ByteArrayCharacterSourceUTF8 extends EncodedCharacterSource {
 	//storing state to decode UTF8 sequences that produce multiple chars
 	private int prevThirdByte = 0;
 
-	final private byte[] buffer;
-
 	/**
 	 * @param bytes
 	 * @param offset
 	 * @param length
 	 */
 	public ByteArrayCharacterSourceUTF8(byte[] bytes, int offset, int length) {
-		super(offset, length);
-		this.buffer = bytes;
+		super(bytes,offset, length);
 	}
 
 	/**
@@ -47,7 +44,6 @@ public class ByteArrayCharacterSourceUTF8 extends EncodedCharacterSource {
 	@Override
 	public CharacterSource getSourceFromPosition(final int pos) {
 		ByteArrayCharacterSourceUTF8 source = new ByteArrayCharacterSourceUTF8(buffer, pos, max);
-		//source.cursor = pos;
 		return source;
 	}
 

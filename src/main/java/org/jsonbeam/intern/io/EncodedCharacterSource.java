@@ -41,6 +41,8 @@ import org.jsonbeam.intern.utils.TriFunction;
 public abstract class EncodedCharacterSource extends JsonCharacterSource {
 
 	private Closeable closeable = ()->{};
+
+	protected final byte[] buffer;
 	
 	static final Map<String,TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource>> FACTORIES=new HashMap<>();
 	static {
@@ -70,8 +72,9 @@ public abstract class EncodedCharacterSource extends JsonCharacterSource {
 		return FACTORIES.computeIfAbsent(charset.name(),name->{throw new JBUnsupportedCharser(name);}).apply(buffer,offset-1, length-1);
 	}
 
-	protected EncodedCharacterSource(final int offset,final int length) {
+	protected EncodedCharacterSource(byte[] buffer,final int offset,final int length) {
 		super(offset,length);
+		this.buffer=buffer;
 	}
 	
 

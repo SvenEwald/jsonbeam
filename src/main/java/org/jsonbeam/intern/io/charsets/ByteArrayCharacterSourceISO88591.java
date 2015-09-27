@@ -26,16 +26,13 @@ import org.jsonbeam.intern.io.EncodedCharacterSource;
  */
 public class ByteArrayCharacterSourceISO88591 extends EncodedCharacterSource {
 
-	final private byte[] buffer;
-
 	/**
 	 * @param bytes
 	 * @param offset
 	 * @param length
 	 */
 	public ByteArrayCharacterSourceISO88591(byte[] bytes, int offset, int length) {
-		super(offset, length);
-		this.buffer = bytes;
+		super(bytes,offset, length);
 	}
 
 	/**
