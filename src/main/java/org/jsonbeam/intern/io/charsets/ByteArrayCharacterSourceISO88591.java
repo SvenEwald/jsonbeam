@@ -18,6 +18,8 @@
  */
 package org.jsonbeam.intern.io.charsets;
 
+import org.jsonbeam.exceptions.UnexpectedEOF;
+import org.jsonbeam.intern.index.keys.KeyReference;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.EncodedCharacterSource;
 
@@ -57,5 +59,67 @@ public class ByteArrayCharacterSourceISO88591 extends EncodedCharacterSource {
 	@Override
 	public int getPrevPosition() {
 		return cursor - 1;
+	}
+	
+	public char nextConsumingWhitespace() {
+		int c;
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			c = buffer[++i]&0xff;
+			if (c > ' ') {
+				cursor = i;
+				return (char) c;
+			}
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	public int skipToQuote() {
+		int c;
+		int length = 0;
+		int m = max;
+		int i = cursor;
+		 while (i < m) {
+			c = buffer[++i];
+				if ('"' == c) {
+					cursor = i;
+					return length;
+				}
+				if ('\\' == c) {	
+					cursor = i;
+					int r = unquotedNext();
+					i=cursor;
+					c = (char) (r & 0xffff);
+					length += r >> 16;					
+				}
+				++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	public KeyReference parseJSONKey() {
+		int start = getPosition();
+		int hash = 0;
+		int length = 0;
+		int i = start;
+		int m = max;
+		while (i < m) {
+			int c = buffer[++cursor]&0xff;
+			if (c == '"') {
+				cursor = i;
+				return new KeyReference(start, length, hash, this);
+			}
+			if ('\\' == c) {
+				cursor = i;
+				int r = unquotedNext();
+				i = cursor;
+				c = (char) (r & 0xffff);
+				length += r >> 16;
+			}
+			++length;
+			hash = (31 * hash) + c;
+		}
+		throw new UnexpectedEOF(getPosition());
 	}
 }

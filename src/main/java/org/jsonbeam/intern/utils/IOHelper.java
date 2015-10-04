@@ -80,50 +80,51 @@ public class IOHelper {
 	 * 
 	 * @param buffer
 	 * @return UTF_16BE,UTF_16LE or UTF_8 if BOM is found, else nothing
-	 */@Deprecated
-	public static Optional<Charset> charSetForBOM(byte[] buffer) {
-		if (buffer.length < 2) {
-			return Optional.empty();
-		}
-		if ((buffer[0] == (byte) 0xFE) && (buffer[1] == (byte) 0xFF)) {
-			return Optional.of(StandardCharsets.UTF_16BE);
-		}
-		if ((buffer[0] == (byte) 0xFF) && (buffer[1] == (byte) 0xFE)) {
-			return Optional.of(StandardCharsets.UTF_16LE);
-		}
-		if (buffer.length < 3) {
-			return Optional.empty();
-		}
-		if ((buffer[0] == (byte) 0xEF) && (buffer[1] == (byte) 0xBB) && (buffer[2] == (byte) 0xBF)) {
-			return Optional.of(StandardCharsets.UTF_8);
-		}
-		return Optional.empty();
-	}
-	
-	/**
-	 * Determine UTF character set via byte order mark
-	 * 
-	 * @param buffer
-	 * @return UTF_16BE,UTF_16LE or UTF_8 if BOM is found, else nothing
 	 */
-	public static Optional<String> charSetNameForBOM(byte[] buffer,int offset) {
+	public static Optional<Charset> charSetForBOM(byte[] buffer,int offset) {
 		if (buffer.length < 2+offset) {
 			return Optional.empty();
 		}
-		int o=offset;
+		int o=+offset;
 		if ((buffer[o] == (byte) 0xFE) && (buffer[o+1] == (byte) 0xFF)) {
-			return Optional.of("UTF-16BE");
+			return Optional.of(StandardCharsets.UTF_16BE);
 		}
 		if ((buffer[o] == (byte) 0xFF) && (buffer[o+1] == (byte) 0xFE)) {
-			return Optional.of("UTF-16LE");
+			return Optional.of(StandardCharsets.UTF_16LE);
 		}
 		if (buffer.length < 3+offset) {
 			return Optional.empty();
 		}
 		if ((buffer[o] == (byte) 0xEF) && (buffer[o+1] == (byte) 0xBB) && (buffer[o+2] == (byte) 0xBF)) {
-			return Optional.of("UTF-8");
+			return Optional.of(StandardCharsets.UTF_8);
 		}
 		return Optional.empty();
 	}
+	
+//	/**
+//	 * Determine UTF character set via byte order mark
+//	 * 
+//	 * @param buffer
+//	 * @return UTF_16BE,UTF_16LE or UTF_8 if BOM is found, else nothing
+//	 */
+//	public static Optional<String> charSetNameForBOM(byte[] buffer,int offset) {
+//		if (buffer.length < 2+offset) {
+//			return Optional.empty();
+//		}
+//		int o=offset;
+//		if ((buffer[o] == (byte) 0xFE) && (buffer[o+1] == (byte) 0xFF)) {
+//			return Optional.of("UTF-16BE");
+//		}
+//		if ((buffer[o] == (byte) 0xFF) && (buffer[o+1] == (byte) 0xFE)) {
+//			return Optional.of("UTF-16LE");
+//		}
+//		if (buffer.length < 3+offset) {
+//			return Optional.empty();
+//		}
+//		if ((buffer[o] == (byte) 0xEF) && (buffer[o+1] == (byte) 0xBB) && (buffer[o+2] == (byte) 0xBF)) {
+//			return Optional.of("UTF-8");
+//		}
+//		return Optional.empty();
+//	}
 	
 }

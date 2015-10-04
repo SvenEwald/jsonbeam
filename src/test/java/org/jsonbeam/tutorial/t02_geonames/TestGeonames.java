@@ -18,8 +18,6 @@
  */
 package org.jsonbeam.tutorial.t02_geonames;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -28,6 +26,8 @@ import org.jsonbeam.JsonProjector;
 import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * @author Sven
  */

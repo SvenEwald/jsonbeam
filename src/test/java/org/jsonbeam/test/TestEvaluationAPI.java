@@ -18,12 +18,14 @@
  */
 package org.jsonbeam.test;
 
-import static org.junit.Assert.*;
-
 import java.util.Scanner;
 
 import org.jsonbeam.JsonProjector;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Sven

@@ -20,7 +20,6 @@ package org.jsonbeam.intern.io;
 
 import java.io.Closeable;
 
-import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.index.keys.KeyReference;
 
 /**
@@ -28,14 +27,34 @@ import org.jsonbeam.intern.index.keys.KeyReference;
  */
 public interface CharacterSource {
 
+	/**
+	 * 
+	 * @return
+	 */
 	boolean hasNext();
 
+	/**
+	 * 
+	 * @return
+	 */
 	char next();
 
+	/**
+	 * 
+	 * @return
+	 */
 	int getPosition();
 
+	/**
+	 * 
+	 * @return
+	 */
 	char nextConsumingWhitespace();
 
+	/**
+	 * 
+	 * @return
+	 */
 	int skipToQuote();
 
 	/**
@@ -44,11 +63,19 @@ public interface CharacterSource {
 	 */
 	CharacterSource getSourceFromPosition(int a);
 
+	/**
+	 * 
+	 * @return
+	 */
 	default Closeable ioHandle() {
 		return () -> {
 		};
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	KeyReference parseJSONKey();
 
 	/**
@@ -71,6 +98,10 @@ public interface CharacterSource {
 	 */
 	long findFalse();
 
+	/**
+	 * 
+	 * @param key
+	 */
 	void setCharsBuffer(KeyReference key);
 
 	/**

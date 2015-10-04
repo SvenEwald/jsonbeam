@@ -19,8 +19,8 @@
 package org.jsonbeam.test;
 
 import org.jsonbeam.intern.index.model.values.StringValueReference;
-import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharSeqCharacterSource;
+import org.jsonbeam.intern.io.CharacterSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

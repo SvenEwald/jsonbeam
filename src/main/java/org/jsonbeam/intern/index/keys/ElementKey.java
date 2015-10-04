@@ -49,7 +49,7 @@ public interface ElementKey {
 		}
 	};
 	
-
+	@Deprecated
 	default String apply(CharSequence charArray) {
 		return toString();
 	}

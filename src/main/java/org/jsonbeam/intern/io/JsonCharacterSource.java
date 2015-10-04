@@ -23,7 +23,7 @@ import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.index.keys.KeyReference;
 
 /**
- * @author sven
+ * @author Sven
  */
 abstract class JsonCharacterSource implements CharacterSource {
 
@@ -50,13 +50,13 @@ abstract class JsonCharacterSource implements CharacterSource {
 	public char next() {
 		int c = getNextByte();
 		if ('\\' == c) {
-			return unquotedNext();
+			return (char) (unquotedNext() & 0xffff);
 		}
 		return (char) c;
 	}
 
-	private char unquotedNext() {
-		if (!hasNext_()) {
+	protected char unquotedNext() {
+		if (!hasNext()) {
 			throw new UnexpectedEOF(cursor);
 		}
 		int c2 = getNextByte();
@@ -81,7 +81,7 @@ abstract class JsonCharacterSource implements CharacterSource {
 		case 'u':
 			return unquoteHexCodePoint();
 		default:
-			throw new JBIOException("Illegal quote '{0}' at position {1}", "\\" + c2, Integer.valueOf(getPosition()));
+			throw new JBIOException("Illegal quote ''{0}'' at position {1}", "\\" + Character.valueOf((char) c2), Integer.valueOf(getPosition()));
 		}
 	}
 
@@ -90,19 +90,19 @@ abstract class JsonCharacterSource implements CharacterSource {
 	 */
 	private char unquoteHexCodePoint() {
 		StringBuilder hexnumber = new StringBuilder();
-		if (!hasNext_()) {
+		if (!hasNext()) {
 			throw new UnexpectedEOF(cursor);
 		}
 		hexnumber.append((char) getNextByte());
-		if (!hasNext_()) {
+		if (!hasNext()) {
 			throw new UnexpectedEOF(cursor);
 		}
 		hexnumber.append((char) getNextByte());
-		if (!hasNext_()) {
+		if (!hasNext()) {
 			throw new UnexpectedEOF(cursor);
 		}
 		hexnumber.append((char) getNextByte());
-		if (!hasNext_()) {
+		if (!hasNext()) {
 			throw new UnexpectedEOF(cursor);
 		}
 		hexnumber.append((char) getNextByte());
@@ -123,40 +123,20 @@ abstract class JsonCharacterSource implements CharacterSource {
 		return cursor < max;
 	}
 
-	/**
-	 * Hack to define a static binding.
-	 * 
-	 * @return
-	 */
-	private boolean hasNext_() {
-		return cursor < max;
-	}
-
 	abstract protected int getNextByte();
 
-	public char nextConsumingWhitespace() {
-		char c;
-		while (hasNext()) {
-			c = next();
-			if (c > ' ') {
-				return c;
-			}
-		}
-		throw new UnexpectedEOF(getPosition());
-	}
-
-	public int skipToQuote() {
-		char c;
-		int length = 0;
-		while (hasNext()) {
-			c = next();
-			if (c == '"') {
-				return length;
-			}
-			++length;
-		}
-		throw new UnexpectedEOF(getPosition());
-	}
+	//	public int skipToQuote() {
+	//		char c;
+	//		int length = 0;
+	//		while (hasNext()) {
+	//			c = next();
+	//			if (c == '"') {
+	//				return length;
+	//			}
+	//			++length;
+	//		}
+	//		throw new UnexpectedEOF(getPosition());
+	//	}
 
 	public KeyReference parseJSONKey() {
 		int start = getPosition();

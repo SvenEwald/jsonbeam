@@ -18,13 +18,13 @@
  */
 package org.jsonbeam.tutorial.t01_twitter;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.util.OptionalInt;
 
 import org.jsonbeam.JsonProjector;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author Sven

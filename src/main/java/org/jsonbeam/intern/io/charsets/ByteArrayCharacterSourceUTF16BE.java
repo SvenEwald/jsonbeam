@@ -18,6 +18,8 @@
  */
 package org.jsonbeam.intern.io.charsets;
 
+import org.jsonbeam.exceptions.UnexpectedEOF;
+import org.jsonbeam.intern.index.keys.KeyReference;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.EncodedCharacterSource;
 
@@ -32,7 +34,7 @@ public class ByteArrayCharacterSourceUTF16BE extends EncodedCharacterSource {
 	 * @param length
 	 */
 	public ByteArrayCharacterSourceUTF16BE(byte[] bytes, int offset, int length) {
-		super(bytes,offset, length);
+		super(bytes, offset, length);
 	}
 
 	/**
@@ -43,19 +45,86 @@ public class ByteArrayCharacterSourceUTF16BE extends EncodedCharacterSource {
 		ByteArrayCharacterSourceUTF16BE source = new ByteArrayCharacterSourceUTF16BE(buffer, pos, max);
 		return source;
 	}
-	
+
 	@Override
 	public int getNextByte() {
-		int i=cursor;		
+		int i = cursor;
 		int a = buffer[++i] & 0xff;
 		int b = buffer[++i] & 0xff;
-		cursor=i;
+		cursor = i;
 		return ((a << 8) | b);
 	}
 
 	@Override
 	public int getPrevPosition() {
 		return cursor - 2;
+	}
+
+	public char nextConsumingWhitespace() {
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			int a = buffer[++i] & 0xff;
+			int b = buffer[++i] & 0xff;
+			if ((b > ' ') || (a != 0)) {
+				cursor = i;
+				return (char) ((a << 8) | b);
+			}
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	public int skipToQuote() {
+		char c;
+		int length = 0;
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			int a = buffer[++i] & 0xff;
+			int b = buffer[++i] & 0xff;
+			c = (char) ((a << 8) | b);
+			if ('"' == c) {
+				cursor = i;
+				return length;
+			}
+			if ('\\' == c) {
+				cursor = i;
+				int r = unquotedNext();
+				i = cursor;
+				c = (char) (r & 0xffff);
+				length += r >> 16;
+			}
+			++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	public KeyReference parseJSONKey() {
+		int start = getPosition();
+		int hash = 0;
+		int length = 0;
+		int i = start;
+		int m = max;
+		int c;
+		while (i < m) {
+			int a = buffer[++i] & 0xff;
+			int b = buffer[++i] & 0xff;
+			c = (char) ((a << 8) | b);
+			if (c == '"') {
+				cursor = i;
+				return new KeyReference(start, length, hash, this);
+			}
+			if ('\\' == c) {
+				cursor = i;
+				int r = unquotedNext();
+				i = cursor;
+				c = (char) (r & 0xffff);
+				length += r >> 16;
+			}
+			++length;
+			hash = (31 * hash) + c;
+		}
+		throw new UnexpectedEOF(getPosition());
 	}
 
 }

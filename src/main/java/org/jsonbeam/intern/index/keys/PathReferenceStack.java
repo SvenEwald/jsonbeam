@@ -19,11 +19,9 @@
 package org.jsonbeam.intern.index.keys;
 
 import java.util.Iterator;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.utils.collections.IntegerStack;
 import org.jsonbeam.intern.utils.collections.ObjectStack;
 

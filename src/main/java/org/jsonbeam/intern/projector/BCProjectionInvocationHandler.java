@@ -85,7 +85,7 @@ public class BCProjectionInvocationHandler implements InvocationHandler {
 		}
 		private final static Map<Class<?>, Function<Reference, Object>> PRIMITIVE_CONVERTERS = new HashMap<>();
 		static {
-			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (r) -> Reference.TRUE == r);
+			PRIMITIVE_CONVERTERS.put(Boolean.TYPE, (r) -> Boolean.valueOf(Reference.TRUE == r));
 			PRIMITIVE_CONVERTERS.put(Byte.TYPE, (r) -> Byte.valueOf(r.apply()));
 			PRIMITIVE_CONVERTERS.put(Short.TYPE, (r) -> Short.valueOf(r.apply()));
 			PRIMITIVE_CONVERTERS.put(Integer.TYPE, (r) -> Integer.valueOf(r.apply()));

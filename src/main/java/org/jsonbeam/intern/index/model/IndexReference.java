@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.jsonbeam.intern.index.JBQueries;
-import org.jsonbeam.intern.index.JBSubQueries;
 
 public abstract class IndexReference implements ReferenceWithIndex {
 

@@ -16,15 +16,15 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.intern.index.model;
+package org.jsonbeam.exceptions;
 
-import java.util.Optional;
+/**
+ * @author sven
+ *
+ */
+public class JBUnsupportedCharset extends RuntimeException {
+	public JBUnsupportedCharset(String name) {
+		super("Sorry, Charset '"+name+"' is currently not supported.");
+	}
 
-import org.jsonbeam.intern.index.JBQueries;
-
-public interface ReferenceWithIndex extends Reference {
-
-	void addSubCollector(JBQueries subCollector);
-
-	Optional<JBQueries> getSubCollector();
 }

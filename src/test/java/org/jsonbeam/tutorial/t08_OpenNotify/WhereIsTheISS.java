@@ -18,14 +18,15 @@
  */
 package org.jsonbeam.tutorial.t08_OpenNotify;
 
+import java.io.IOException;
+
 import org.jsonbeam.JsonProjector;
 import org.jsonbeam.annotations.JBDocURL;
 import org.jsonbeam.annotations.JBRead;
 import org.jsonbeam.tutorial.TutorialTestCase;
 import org.junit.Test;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.IOException;
+import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * @author Sven
  */

@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.jsonbeam.JPathEvaluator;
-import org.jsonbeam.exceptions.JBUnimplemented;
-import org.jsonbeam.intern.index.JBQueries;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.projector.CanEvaluateOrProject;
 import org.jsonbeam.intern.projector.JBProjector;

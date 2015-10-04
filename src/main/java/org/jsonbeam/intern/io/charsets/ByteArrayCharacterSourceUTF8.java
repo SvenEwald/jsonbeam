@@ -19,6 +19,7 @@
 package org.jsonbeam.intern.io.charsets;
 
 import org.jsonbeam.exceptions.JBIOException;
+import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.EncodedCharacterSource;
 
@@ -35,7 +36,7 @@ public class ByteArrayCharacterSourceUTF8 extends EncodedCharacterSource {
 	 * @param length
 	 */
 	public ByteArrayCharacterSourceUTF8(byte[] bytes, int offset, int length) {
-		super(bytes,offset, length);
+		super(bytes, offset, length);
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class ByteArrayCharacterSourceUTF8 extends EncodedCharacterSource {
 
 		if ((first & 0b11000000) == 0b10000000) { // in surrogate sequence
 			if (prevThirdByte == 0) {
-				throw new JBIOException("Illegal UTF-8 sequence at pos {0}", cursor);
+				throw new JBIOException("Illegal UTF-8 sequence at pos {0}", Integer.valueOf(cursor));
 			}
 			int fourth = first;//it was the fourth char we just read
 			char c = (char) (((0b11011100 | ((prevThirdByte & 0b00001100) >> 2)) << 8) | ((prevThirdByte & 0b00000011) << 6) | (fourth & 0b00111111));
@@ -108,5 +109,81 @@ public class ByteArrayCharacterSourceUTF8 extends EncodedCharacterSource {
 		// hack, this method is called for nonsurrogate chars only
 		return cursor - 1;
 	}
+
+	public char nextConsumingWhitespace() {
+		int c;
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			c = buffer[++i] & 0xff;
+			if (c > ' ') {
+				cursor = i;
+				return (char) (((c & 0b10000000) == 0) ? c : nextUTF8Byte(c));
+			}
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	public int skipToQuote() {
+		int c;
+		int length = 0;
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			c = buffer[++i];
+			if ('"' == c) {
+				cursor = i;
+				return length;
+			}
+			if ('\\' == c) {
+				cursor = i;
+				int r = unquotedNext();
+				i = cursor;
+				c = (char) (r & 0xffff);
+				//length += 1 + r >> 16;
+				++length;
+				continue;
+			}
+			if ((c & 0b10000000) == 0b10000000) {
+				cursor=i;
+				nextUTF8Byte(c);	
+				i=cursor;
+			}
+
+			++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+
+	//	public KeyReference parseJSONKey() {
+	//		int start = getPosition();
+	//		int hash = 0;
+	//		int length = 0;
+	//		int i = start;
+	//		int m = max;
+	//		while (i < m) {
+	//			int c = buffer[++cursor] & 0xff;
+	//			if ((c & 0b10000000) == 0b10000000) {
+	//				int a=cursor=i;
+	//				c = nextUTF8Byte(c);
+	//				i=cursor;
+	//				length+=1+i-a;
+	//			}
+	//			if (c == '"') {
+	//				cursor = i;
+	//				return new KeyReference(start, length, hash, this);
+	//			}
+	//			if ('\\' == c) {
+	//				cursor = i;
+	//				int r = unquotedNext();
+	//				i = cursor;
+	//				c = (char) (r & 0xffff);
+	//				length += r >> 16;
+	//			}
+	//			++length;
+	//			hash = (31 * hash) + c;
+	//		}
+	//		throw new UnexpectedEOF(getPosition());
+	//	}
 
 }

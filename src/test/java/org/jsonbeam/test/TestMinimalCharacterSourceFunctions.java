@@ -23,9 +23,9 @@ import java.nio.charset.Charset;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.utils.Pair;
 import org.junit.Before;
 import org.junit.ClassRule;

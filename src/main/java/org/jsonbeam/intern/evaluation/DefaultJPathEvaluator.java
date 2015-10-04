@@ -19,9 +19,6 @@
 package org.jsonbeam.intern.evaluation;
 
 import java.lang.reflect.Array;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -33,17 +30,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jsonbeam.JPathEvaluator;
-import org.jsonbeam.exceptions.JBIOException;
-import org.jsonbeam.exceptions.JBUnimplemented;
 import org.jsonbeam.intern.index.JBQueries;
-import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.keys.PathReferenceStack;
-import org.jsonbeam.intern.index.model.IndexReference;
 import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.index.model.values.LiteralReference;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.parser.IndexOnlyJSONParser;
-import org.jsonbeam.intern.projector.BCProjectionInvocationHandler;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.intern.projector.ProjectionType;
 import org.jsonbeam.intern.utils.ProjectionInterfaceHelper;

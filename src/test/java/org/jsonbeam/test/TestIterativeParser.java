@@ -20,11 +20,8 @@ package org.jsonbeam.test;
 
 import java.util.Scanner;
 
-import org.jsonbeam.intern.index.JBQueries;
-import org.jsonbeam.intern.index.model.IndexReference;
-import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharSeqCharacterSource;
-import org.jsonbeam.intern.parser.JSONParser;
+import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.examples.ActionLabel;
 import org.junit.Test;

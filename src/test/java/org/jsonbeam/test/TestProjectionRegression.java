@@ -41,9 +41,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
-import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.utils.JBExpect;
 import org.junit.Assert;

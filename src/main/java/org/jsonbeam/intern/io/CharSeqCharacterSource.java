@@ -18,6 +18,7 @@
  */
 package org.jsonbeam.intern.io;
 
+import org.jsonbeam.exceptions.UnexpectedEOF;
 import org.jsonbeam.intern.index.keys.KeyReference;
 
 /**
@@ -83,5 +84,89 @@ public class CharSeqCharacterSource extends JsonCharacterSource {
 		key.setChars(buffer.subSequence(start, start+key.length()).toString().toCharArray(),0);
 	}
 
+	public char nextConsumingWhitespace() {
+		char c;
+		int m = max;
+		int i = cursor;
+		while (i < m) {
+			c = buffer.charAt(++i);
+			if (c > ' ') {
+				cursor = i;
+				return c;
+			}
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	public int skipToQuote() {
+		char c;
+		int length = 0;
+		int m = max;
+		int i = cursor;
+		 while (i < m) {
+			c = buffer.charAt(++i);
+				if ('"' == c) {
+					cursor = i;
+					return length;
+				}
+				if ('\\' == c) {	
+					cursor = i;
+					int r = unquotedNext();
+					i=cursor;
+					c = (char) (r & 0xffff);
+					length += r >> 16;					
+				}
+				++length;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	
+	public KeyReference parseJSONKey() {
+		int start = getPosition();
+		int hash = 0;
+		int length = 0;
+		int i = start;
+		int m = max;
+		while (i < m) {
+			char c = buffer.charAt(++i);
+			if (c == '"') {
+				cursor=i;
+				return new KeyReference(start, length, hash, this);
+			}
+			if ('\\' == c) {
+				cursor = i;
+				int r = unquotedNext();
+				i = cursor;
+				c = (char) (r & 0xffff);
+				length += r >> 16;
+			}
+			++length;
+			hash = (31 * hash) + c;
+		}
+		throw new UnexpectedEOF(getPosition());
+	}
+	
+	
+//	public int skipToQuote() {
+//		char c;
+//		int m = max;
+//		int i = cursor;
+//		int start=i;
+//		while (i<m) {
+//			c = buffer.charAt(++i);
+//			if (c == '\\') {
+//				cursor=i;
+//				c=unquotedNext();
+//				i=cursor;
+//			}
+//			if (c == '"') {
+//				int length=start-i;
+//				cursor=i;
+//				return length;
+//			}			
+//		}
+//		throw new UnexpectedEOF(getPosition());
+//	}
 
 }

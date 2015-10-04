@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.jsonbeam.exceptions.JBIOException;
-import org.jsonbeam.exceptions.JBUnsupportedCharser;
+import org.jsonbeam.exceptions.JBUnsupportedCharset;
 import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceCP1252;
 import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceISO88591;
 import org.jsonbeam.intern.io.charsets.ByteArrayCharacterSourceUTF16BE;
@@ -44,14 +44,14 @@ public abstract class EncodedCharacterSource extends JsonCharacterSource {
 
 	protected final byte[] buffer;
 	
-	static final Map<String,TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource>> FACTORIES=new HashMap<>();
+	static final Map<Charset,TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource>> FACTORIES=new HashMap<>();
 	static {
-		FACTORIES.put("ISO-8859-1", ByteArrayCharacterSourceISO88591::new );
-		FACTORIES.put("US-ASCII", ByteArrayCharacterSourceISO88591::new );
-		FACTORIES.put("UTF-8", ByteArrayCharacterSourceUTF8::new );
-		FACTORIES.put("UTF-16LE", ByteArrayCharacterSourceUTF16LE::new );
-		FACTORIES.put("UTF-16BE", ByteArrayCharacterSourceUTF16BE::new );
-		FACTORIES.put("windows-1252", ByteArrayCharacterSourceCP1252::new);
+		FACTORIES.put(StandardCharsets.ISO_8859_1, ByteArrayCharacterSourceISO88591::new );//"ISO-8859-1"
+		FACTORIES.put(StandardCharsets.US_ASCII, ByteArrayCharacterSourceISO88591::new );//"US-ASCII"
+		FACTORIES.put(StandardCharsets.UTF_8, ByteArrayCharacterSourceUTF8::new );//"UTF-8"
+		FACTORIES.put(StandardCharsets.UTF_16LE, ByteArrayCharacterSourceUTF16LE::new );//"UTF-16LE"
+		FACTORIES.put(StandardCharsets.UTF_16BE, ByteArrayCharacterSourceUTF16BE::new );//"UTF-16BE"
+		FACTORIES.put(Charset.forName("windows-1252"), ByteArrayCharacterSourceCP1252::new);
 	}
 
 	public static EncodedCharacterSource handleBOM(byte[] buffer,final int offset, final int length, final Charset charset) {
@@ -59,17 +59,17 @@ public abstract class EncodedCharacterSource extends JsonCharacterSource {
 		Objects.requireNonNull(charset);
 		// If charset==UTF_16, determine real charset via BOM
 		if (IOHelper.UTF_BOM == charset || (charset.equals(StandardCharsets.UTF_16))) {
-			String charSetNameForBOM = IOHelper.charSetNameForBOM(buffer,offset).orElseThrow(()->new JBIOException("For charset {0} a BOM is needed in the data, but was not found. I don't know how to read it.",charset.name()));
-			TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource> factory=FACTORIES.get(charSetNameForBOM);
+			Charset charSetForBOM = IOHelper.charSetForBOM(buffer,offset).orElseThrow(()->new JBIOException("For charset {0} a BOM is needed in the data, but was not found. I don't know how to read it.",charset.name()));
+			TriFunction<byte[],Integer,Integer,? extends EncodedCharacterSource> factory=FACTORIES.get(charSetForBOM);
 			if (factory==null) {
-				throw new IllegalStateException(charSetNameForBOM);
+				throw new IllegalStateException(charSetForBOM.name());
 			}
-			EncodedCharacterSource source = factory.apply(buffer,offset-1, length-1);
+			EncodedCharacterSource source = factory.apply(buffer,(offset-1), length-1);
 			// Skip over BOM bytes
-			source.cursor += "UTF-8".equals(charSetNameForBOM) ? 3 : 2;
+			source.cursor += StandardCharsets.UTF_8.equals(charSetForBOM) ? 3 : 2;
 			return source;
 		}
-		return FACTORIES.computeIfAbsent(charset.name(),name->{throw new JBUnsupportedCharser(name);}).apply(buffer,offset-1, length-1);
+		return FACTORIES.computeIfAbsent(charset,cs->{throw new JBUnsupportedCharset(cs.name());}).apply(buffer,offset-1, length-1);
 	}
 
 	protected EncodedCharacterSource(byte[] buffer,final int offset,final int length) {

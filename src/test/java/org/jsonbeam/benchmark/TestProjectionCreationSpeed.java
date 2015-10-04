@@ -20,8 +20,8 @@ package org.jsonbeam.benchmark;
 
 import java.util.Scanner;
 
-import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.io.CharSeqCharacterSource;
+import org.jsonbeam.intern.io.CharacterSource;
 import org.jsonbeam.intern.projector.JBProjector;
 import org.jsonbeam.test.examples.DefiantExample2;
 import org.junit.Test;
