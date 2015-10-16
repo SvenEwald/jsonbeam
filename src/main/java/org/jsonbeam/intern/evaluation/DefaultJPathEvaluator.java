@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.jsonbeam.JPathEvaluator;
 import org.jsonbeam.intern.index.JBQueries;
+import org.jsonbeam.intern.index.JBResultProvider;
 import org.jsonbeam.intern.index.keys.PathReferenceStack;
 import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.index.model.values.LiteralReference;
@@ -185,6 +186,20 @@ public class DefaultJPathEvaluator implements JPathEvaluator {
 		//		T t = projector.projectReference((IndexReference) resultsForPath.get(0), returnType);
 		//		return Optional.of(t);
 	}
+	
+	public <T> Optional<T> as(Class<T> returnType,Function<JBResultProvider,T> constructor){
+		projector.addProjectionConstructor(returnType,constructor);
+		List<Reference> resultsForPath;
+			resultsForPath = evaluateResultsForSubprojection(returnType);
+		if (resultsForPath.isEmpty()) {
+			return Optional.empty();
+		}
+		Function<Stream<Reference>, Stream<?>> typeConverter = projector.getGlobalTypeConverter(returnType);
+		return (Optional<T>) typeConverter.apply(resultsForPath.stream()).findFirst();
+
+	}
+	
+	
 
 	/**
 	 * {@inheritDoc}

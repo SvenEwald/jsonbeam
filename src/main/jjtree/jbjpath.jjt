@@ -1,0 +1,181 @@
+options {
+        
+        STATIC = false;
+        MULTI=true;
+        VISITOR=true ;     
+        VISITOR_DATA_TYPE="org.jsonbeam.intern.index.keys.PathReferenceStack";
+        VISITOR_RETURN_TYPE="org.jsonbeam.intern.index.keys.PathReferenceStack";
+        NODE_SCOPE_HOOK=false;
+        NODE_USES_PARSER=true;
+        FORCE_LA_CHECK=true;
+        NODE_PACKAGE="org.jsonbeam.intern.jpath.parser";
+        NODE_PREFIX="";
+        TRACK_TOKENS =true;
+        COMMON_TOKEN_ACTION=false;
+//        DEBUG_PARSER=true;
+        }
+
+        
+        PARSER_BEGIN(JBJPathParser)
+
+        package org.jsonbeam.intern.jpath.parser;
+		@SuppressWarnings("javadoc")
+        public class JBJPathParser {
+        }
+
+        PARSER_END(JBJPathParser)
+
+<DEFAULT, IN_ARRAY_INDEX>
+TOKEN: {
+ < STAR: "*" >
+}
+
+<DEFAULT,IN_FILTER >
+TOKEN: {
+  < STEPNAME: (~[".","[","<",">","!","=","]","$","*" ])+ >
+}
+
+<DEFAULT,IN_FILTER >
+TOKEN: {
+ < DOTDOT: ".." > |
+ < DOT: "." >
+}
+
+<DEFAULT>
+TOKEN: {
+ < ROOT: "$" > |
+ < LBRACKET: "[" (" "|"\t")* > : IN_ARRAY_INDEX |
+ < FILTERBRACKET: "[" (" "|"\t")* "?" (" "|"\t")* "@" > : IN_FILTER
+}
+
+<IN_VALUE,IN_FILTER,IN_ARRAY_INDEX>
+TOKEN: {
+ < RBRACKET: "]" > : DEFAULT
+}
+
+<IN_FILTER>
+TOKEN:{
+   <  COMPARISONS: "==" | "!=" | "<=" | ">=" | "<" | ">" > :IN_VALUE}
+
+<IN_ARRAY_INDEX>
+TOKEN: {
+ < COLON: ":" >
+}
+
+
+<IN_ARRAY_INDEX>
+SKIP : { " " | "\t" | "\r" | "\n" }
+
+<IN_ARRAY_INDEX>
+TOKEN:{< COMMA: "," >
+}
+
+<IN_VALUE>
+TOKEN:
+{
+  <JSONLIT: "true" | "false" | "null" >: IN_FILTER
+}
+
+<IN_VALUE>
+TOKEN: { 
+	<QUOTED_STRING: "\"" (~["\"", "\\"] | "\\\"" | "\\\\")* "\"" > 
+	{ matchedToken.image = image.substring(1, lengthOfMatch-1); } : IN_FILTER
+}
+
+<IN_VALUE>
+TOKEN: { 
+	<QUOTED_STRING2: "'" (~["'", "\\"] | "\\\'" | "\\\\")* "'" >
+	{ matchedToken.image = image.substring(1, lengthOfMatch-1); }  : IN_FILTER 
+}
+
+<IN_VALUE,IN_ARRAY_INDEX>
+TOKEN: {
+  < INT_NUMBER: ("0" | ("-")? ["1" - "9"] (["0" - "9"])*) > 
+}
+
+<IN_VALUE,IN_ARRAY_INDEX>
+TOKEN: {
+  < FLOAT_NUMBER: ("0" | ("-")? ["1" - "9"] (["0" - "9"])*) "." (["0" - "9"])+ > 
+}
+
+/* *** Context-free grammar (EBNF) *** */
+
+SimpleNode Start() : {} 
+{ 
+  Step() | ( ( Root()  )? JPath() ) <EOF>
+  
+  { return jjtThis; }
+}
+
+void Root() #void :{}
+{   <ROOT>
+}
+
+void JPath() #void :{}
+{
+  ( Separator() Step() )+}
+ 
+void Step() #void :{}
+{
+	StepName()  ( Predicate() | ArrayPredicate() )?
+}
+
+void StepName(): {}
+{
+	<STEPNAME> | <STAR>
+}
+
+void Separator() : {}
+{
+   <DOT> | <DOTDOT>
+} 
+
+void Predicate() : {}
+{
+  <FILTERBRACKET> JPath() Test() Value() <RBRACKET>
+}
+
+void ArrayPredicate(): {}
+{
+   <LBRACKET> ( Star() | (IntLiteral() ( ArrayIndex() | NumberList() )? ) ) (<RBRACKET>)
+}
+
+void Star():{}
+{
+   <STAR>}
+
+void ArrayIndex():{}
+{
+	  <COLON > IntLiteral()  ( <COLON > IntLiteral() )? 
+}
+
+void Test():{}{
+  <COMPARISONS>}
+
+void Value() #void :{}
+{	StringLiteral() | IntLiteral() | FloatLiteral() | JSONLiteral()
+}
+
+void NumberList():{}
+{
+   (  <COMMA >  IntLiteral() )+
+}
+
+void StringLiteral():{}
+{   <QUOTED_STRING> | <QUOTED_STRING2>
+}
+
+void JSONLiteral():{}
+{ <JSONLIT>
+}
+
+void IntLiteral():{}
+{
+  <INT_NUMBER>
+}
+
+void FloatLiteral():{}
+{
+  <FLOAT_NUMBER>
+}
+

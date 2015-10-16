@@ -1,0 +1,13 @@
+CLEAR_CONSOLE=true
+JAVACC_OPTIONS=-GENERATE_CHAINED_EXCEPTION\=true -GENERATE_GENERICS\=true -OUTPUT_DIRECTORY\=/Users/sven/Devel/java/workspace_mars/jsonprojector/target/generated-sources/javacc/org/jsonbeam/intern/jpath/parser
+JJDOC_OPTIONS=-BNF\=true -OUTPUT_FILE\=target/bnf.html
+JJTREE_OPTIONS=-JJTREE_OUTPUT_DIRECTORY\=/Users/sven/Devel/java/workspace_mars/jsonprojector/target/generated-sources/jjtree/org/jsonbeam/intern/jpath/parser
+JJ_NATURE=true
+JTB_OPTIONS=-ia -jd -tk
+KEEP_DEL_FILES_IN_HISTORY=false
+MARK_GEN_FILES_AS_DERIVED=true
+RUNTIME_JJJAR=
+RUNTIME_JTBJAR=
+RUNTIME_JVMOPTIONS=
+SUPPRESS_WARNINGS=true
+eclipse.preferences.version=1

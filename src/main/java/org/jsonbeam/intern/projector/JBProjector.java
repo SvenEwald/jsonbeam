@@ -18,6 +18,7 @@
  */
 package org.jsonbeam.intern.projector;
 
+import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 
 import org.jsonbeam.JsonProjector.Flags;
 import org.jsonbeam.intern.index.JBQueries;
+import org.jsonbeam.intern.index.JBResultProvider;
 import org.jsonbeam.intern.index.JBSubQueries;
 import org.jsonbeam.intern.index.model.IndexReference;
 import org.jsonbeam.intern.index.model.Reference;
@@ -163,13 +165,26 @@ public class JBProjector {
 		if (ProjectionInterfaceHelper.isProjectionInterface(effectiveReturnType)) {
 			return s -> s.<Object> map(ref -> projectReference((IndexReference) ref, effectiveReturnType));
 		}
+//		Function<Reference, ?> constructor = GLOBAL_TYPE_CONSTRUCTORS.get(effectiveReturnType);
+//		if (constructor!=null) {	
+//			if (true) throw new RuntimeException();
+//			return s->s.map(ref->constructor.apply(ref));
+//		}
 		throw new IllegalArgumentException("Type converter for class " + effectiveReturnType + " not implemented yet");
 	}
 
+	
 	/**
 	 * 
 	 */
 	public static void dropAllCaches() {
 		knownProjectionTypes.clear();
 	}
+	
+	public <T> void addProjectionConstructor(final Class<T> type,Function<JBResultProvider,T> constructor) {
+		GLOBAL_TYPE_CONSTRUCTORS.put(type,ref->constructor.apply(((IndexReference)ref).getSubCollector().get()));
+	}
+	
+	Map<Class<?> ,Function<Reference,?>> GLOBAL_TYPE_CONSTRUCTORS= new HashMap<>();
+	
 }

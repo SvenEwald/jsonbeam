@@ -20,7 +20,10 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.function.Function;
 import java.util.stream.Stream;
+
+import org.jsonbeam.intern.index.JBResultProvider;
 
 /**
  * Interface to build fluent API for the evaluation API.
@@ -72,6 +75,7 @@ public interface JPathEvaluator {
 	 * @return a value of return type that reflects the evaluation result.
 	 */
 	<T> Optional<T> as(Class<T> returnType);
+	<T> Optional<T> as(Class<T> returnType,Function<JBResultProvider,T> constructor);
 
 	/**
 	 * Evaluate the JPath as an array of the given type.

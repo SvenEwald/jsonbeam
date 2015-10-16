@@ -26,10 +26,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 
 import org.jsonbeam.annotations.JBDocURL;
 import org.jsonbeam.exceptions.JBIOException;
 import org.jsonbeam.intern.evaluation.DefaultEvaluator;
+import org.jsonbeam.intern.index.JBResultProvider;
+import org.jsonbeam.intern.index.model.IndexReference;
 import org.jsonbeam.intern.io.CharSeqCharacterSource;
 import org.jsonbeam.intern.io.CharsCharacterSource;
 import org.jsonbeam.intern.io.EncodedCharacterSource;
@@ -142,6 +145,11 @@ public class JsonProjector {
 	 */
 	public void dropAllCaches() {
 		JBProjector.dropAllCaches();
+	}
+	
+
+	public <T> void addProjectionConstructor(final Class<T> type,Function<JBResultProvider,T> constructor) {
+		delegate.addProjectionConstructor(type, constructor);
 	}
 
 

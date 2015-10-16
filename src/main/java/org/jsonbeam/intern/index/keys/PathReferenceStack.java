@@ -30,6 +30,8 @@ public class PathReferenceStack implements Iterable<ElementKey> {
 	public static final PathReferenceStack EMPTY = new PathReferenceStack();
 
 	public static PathReferenceStack parse(String query) {
+		//if (true) return PathParser.parse(query);
+		
 		if (query.startsWith("$.")) {
 			query = query.substring(2);
 		}
