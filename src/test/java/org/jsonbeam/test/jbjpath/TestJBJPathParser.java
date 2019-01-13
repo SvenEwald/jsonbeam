@@ -21,6 +21,8 @@ package org.jsonbeam.test.jbjpath;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.jsonbeam.intern.index.keys.PathParser;
+import org.jsonbeam.intern.index.keys.PathReferenceStack;
 import org.jsonbeam.intern.jpath.parser.JBJPathParser;
 import org.jsonbeam.intern.jpath.parser.JJTJBJPathParserState;
 import org.jsonbeam.intern.jpath.parser.ParseException;
@@ -38,15 +40,15 @@ public class TestJBJPathParser {
 	
 	@Test
 	public void testSimpleParsing() throws ParseException { 
-	Reader input = new StringReader("$.abcde.xxx[*].*.arr[23:24:4].AA[1,2,3]..sdfsadf[?@.abc==\"Huhu\"].a[?@.b!=5.08].b[?@.c!='abc']");
+//	Reader input = new StringReader("$.abcde.xxx[*].*.arr[23:24:4].AA[1,2,3]..sdfsadf[?@.abc==\"Huhu\"].a[?@.b!=5.08].b[?@.c!='abc']");
 //	Reader input = new StringReader(".sdfsadf[?@.abc==\"Huhu\"]");
-	JBJPathParser parser = new JBJPathParser(input);
-	SimpleNode start = parser.Start();
-	dump(start,""); 
+	//JBJPathParser parser = new JBJPathParser(input);
+//	SimpleNode start = parser.Start();
+	//dump(start,""); 
 	 
 	//start.childrenAccept(visitor, data)
-	
-	
+	PathReferenceStack stack = PathParser.parse("$.abcde.xxx[*].*.arr[23:24:4].AA[1,2,3]..sdfsadf[?@.abc.efg==\"Huhu\"].a[?@.b!=5.08].b[?@.c!='abc']");
+	System.out.println(stack);
 	}
 	
 	

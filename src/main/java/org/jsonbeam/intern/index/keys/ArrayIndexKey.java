@@ -21,7 +21,7 @@ package org.jsonbeam.intern.index.keys;
 
 
 public class ArrayIndexKey implements ElementKey {
-	private int index;
+	protected int index;
 
 	public ArrayIndexKey(int pos) {
 		this.index = pos;
@@ -53,6 +53,9 @@ public class ArrayIndexKey implements ElementKey {
 	public boolean matches(ElementKey otherKey) {
 		if (!(otherKey instanceof ArrayIndexKey)) {
 			return false;
+		}
+		if (otherKey instanceof MultipleMatchKey) {
+			return otherKey.matches(this);
 		}
 		return ((ArrayIndexKey) otherKey).index == index;
 	}

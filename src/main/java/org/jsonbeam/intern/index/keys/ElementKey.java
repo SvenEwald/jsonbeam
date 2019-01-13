@@ -18,6 +18,9 @@
  */
 package org.jsonbeam.intern.index.keys;
 
+import java.util.function.Predicate;
+
+import org.jsonbeam.intern.index.model.Reference;
 
 @FunctionalInterface
 public interface ElementKey {
@@ -48,7 +51,7 @@ public interface ElementKey {
 			return "[*]";
 		}
 	};
-	
+
 	@Deprecated
 	default String apply(CharSequence charArray) {
 		return toString();
@@ -57,6 +60,10 @@ public interface ElementKey {
 	boolean matches(ElementKey otherKey);
 
 	default void next() {
-	};
+	}
+
+	default void addSubFilter(PathReferenceStack predicatePath, Predicate<Reference> filter) {
+		throw new IllegalStateException("This method should not be called on this instance:"+this.getClass().getSimpleName());
+	}
 
 }

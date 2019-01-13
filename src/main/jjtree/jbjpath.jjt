@@ -111,7 +111,7 @@ void Root() #void :{}
 {   <ROOT>
 }
 
-void JPath() #void :{}
+void JPath() :{}
 {
   ( Separator() Step() )+}
  

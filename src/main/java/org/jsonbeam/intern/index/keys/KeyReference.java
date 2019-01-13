@@ -18,6 +18,9 @@
  */
 package org.jsonbeam.intern.index.keys;
 
+import java.util.function.Predicate;
+
+import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.io.CharacterSource;
 
 public class KeyReference implements ElementKey {
@@ -133,4 +136,8 @@ public class KeyReference implements ElementKey {
 		this.buffer = null;
 	}
 
+	public void addSubFilter(PathReferenceStack predicatePath, Predicate<Reference> filter) {
+		//XXX: Not implemented yet
+		System.err.println("Adding subfilter to '"+this.toString()+"'");
+	}
 }

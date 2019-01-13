@@ -18,10 +18,14 @@
  */
 package org.jsonbeam.intern.index.keys;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.jsonbeam.intern.index.model.Reference;
 import org.jsonbeam.intern.utils.collections.IntegerStack;
 import org.jsonbeam.intern.utils.collections.ObjectStack;
 
@@ -216,5 +220,12 @@ public class PathReferenceStack implements Iterable<ElementKey> {
 		//			return path + " refering to a subcollector: ";
 		//		}
 		return path;
+	}
+
+	/**
+	 * @return
+	 */
+	public Supplier<List<Reference> >getResultListCreator() {
+		return ArrayList::new;
 	}
 }

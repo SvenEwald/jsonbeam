@@ -18,7 +18,6 @@
  */
 package org.jsonbeam.intern.index;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -235,7 +234,7 @@ public class JBQueries implements JBResultCollector, JBResultProvider {
 		//	System.out.println("found item for path " + path);
 		List<Reference> resultList = results.get(path);
 		if (resultList == null) {
-			resultList = new ArrayList<>();
+			resultList = path.getResultListCreator().get();//
 			results.put(path, resultList);
 		}
 		resultList.add(item);

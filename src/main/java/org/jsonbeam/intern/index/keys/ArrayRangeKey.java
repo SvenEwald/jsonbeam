@@ -16,33 +16,40 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jsonbeam.intern.io.charsets;
+package org.jsonbeam.intern.index.keys;
 
-import java.nio.charset.StandardCharsets;
-
-import org.jsonbeam.intern.io.EncodedCharacterSource;
-import org.jsonbeam.intern.io.CharacterSource;
-
+import java.util.stream.Collectors;
 
 /**
  * @author sven
- *
  */
-public abstract class BytesCharacterSourceISO88591 extends EncodedCharacterSource {
+public class ArrayRangeKey extends ArrayIndexKey implements MultipleMatchKey {
 
-	
-	public BytesCharacterSourceISO88591(int offset, int length) {
-		super(offset,length,StandardCharsets.ISO_8859_1);
+	private int end;
+	private int step;
+
+	/**
+	 * @param pos
+	 */
+	public ArrayRangeKey(int pos, int end, int step) {
+		super(pos);
+		this.end = end;
+		this.step = step;
 	}
-	
+
 	@Override
-	public int getNextByte() {
-		return readNextByte()&0xff;//buffer[++cursor] & 0xff;
+	public boolean matches(ElementKey otherKey) {
+		if (!(otherKey instanceof ArrayIndexKey)) {
+			return false;
+		}
+		assert !(otherKey instanceof MultipleMatchKey) : "How did you end up matching two ranges??";
+		int otherIndex = ((ArrayIndexKey) otherKey).index;
+		return (otherIndex >= index) && (otherIndex <= end) && ((otherIndex - index) % step == 0);
 	}
-	
+
 	@Override
-	public int getPrevPosition() {
-		return cursor-1;
+	public String toString() {
+		return "[" + index + ":" + end + ":" + step + "]";
 	}
-	
+
 }

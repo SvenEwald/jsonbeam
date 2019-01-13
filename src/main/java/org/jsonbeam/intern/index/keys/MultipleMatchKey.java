@@ -16,8 +16,13 @@
  *    You should have received a copy of the GNU General Public License
  *    along with JSONBeam.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.jsonbeam.intern.index.keys;
+
 /**
  * @author sven
- *
+ * Marker interface for multiple match keys.
+ * Used by array ranges and array index lists.
  */
-package org.jsonbeam.tutorial.t03_github;
+public interface MultipleMatchKey {
+
+}
